@@ -29,6 +29,11 @@ Prioritas:
 - checkout menghitung ulang harga.
 - duplicate SKU ditolak.
 - order dan item dibuat konsisten.
+- idempotency key yang sama tidak membuat order atau reservasi ganda.
+- reservasi stok dibuat atomik dan mencegah checkout melebihi stok tersedia.
+- payment paid melakukan commit stok tepat satu kali.
+- deny/cancel/expire dan cleanup kedaluwarsa melepas reservasi tepat satu kali.
+- pembayaran terlambat tidak membuat stok negatif dan masuk rekonsiliasi bila perlu.
 - webhook update status.
 - webhook duplicate aman.
 - file upload validation.

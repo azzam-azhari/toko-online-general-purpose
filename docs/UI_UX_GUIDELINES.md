@@ -131,3 +131,5 @@ Untuk dashboard, state `permission denied` berlaku ketika session bukan admin ak
 - Pastikan chart, border, dan muted text tetap terbaca.
 - Hindari gambar logo yang hilang pada background gelap.
 - Simpan preferensi tema melalui theme provider.
+
+## 10. pastikan semua komponent yang bisa memakai komponent ui shadcn, pakai shadcn

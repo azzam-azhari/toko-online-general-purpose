@@ -1,29 +1,31 @@
 # Roadmap
 
-## Fase 0 — Discovery
+## Fase 0 — Discovery ✅
 
-- Finalisasi scope.
-- Finalisasi brand dan konten.
-- Validasi alur checkout.
-- Tentukan aturan stok dan order.
+Keputusan final: [`PHASE_0_DISCOVERY.md`](./PHASE_0_DISCOVERY.md).
 
-## Fase 1 — Foundation
+- [x] Finalisasi scope.
+- [x] Finalisasi brand dan konten.
+- [x] Validasi alur checkout.
+- [x] Tentukan aturan stok dan order.
 
-- Setup Next.js.
-- Setup Tailwind dan shadcn/ui.
-- Setup Supabase.
-- Setup environment validation.
-- Setup lint, test, dan CI.
-- Terapkan struktur folder.
+## Fase 1 — Foundation ✅
+
+- [x] Setup Next.js.
+- [x] Setup Tailwind dan shadcn/ui.
+- [x] Setup Supabase.
+- [x] Setup environment validation.
+- [x] Setup lint, test, dan CI.
+- [x] Terapkan struktur folder.
 
 ## Fase 2 — Database dan Auth
 
-- Migration schema.
-- Trigger profile.
-- RLS.
-- Login/logout/reset password.
-- Route protection.
-- Role tunggal admin.
+- [x] Migration schema.
+- [x] Trigger profile.
+- [x] RLS.
+- [x] Login/logout/reset password.
+- [x] Route protection.
+- [x] Role tunggal admin.
 
 ## Fase 3 — Dashboard Katalog
 
@@ -90,7 +92,7 @@
 - Wishlist.
 - Voucher.
 - Shipping integration.
-- Inventory reservation.
+- Inventory reservation lintas gudang.
 - Multi-warehouse.
 - Email notification.
 - Analytics funnel.

@@ -50,7 +50,8 @@ create type public.payment_status as enum (
 | description | text | nullable |
 | price | bigint | >= 0 |
 | compare_at_price | bigint | nullable; bila diisi harus > `price` dan tampil sebagai harga coret |
-| stock | integer | >= 0 |
+| stock | integer | stok fisik/on hand; >= 0 |
+| reserved_stock | integer | stok untuk order pending; default 0 |
 | status | product_status | default draft |
 | is_featured | boolean | default false |
 | sort_order | integer | default 0 |
@@ -73,6 +74,8 @@ Constraint penting:
 
 ```sql
 check (compare_at_price is null or compare_at_price > price);
+
+check (reserved_stock >= 0 and reserved_stock <= stock);
 
 check (
   (cta_type = 'custom_url' and custom_url is not null)
@@ -130,6 +133,9 @@ Unique parsial disarankan agar hanya ada satu `is_primary = true` per produk.
 - `shipping_total bigint`
 - `grand_total bigint`
 - `notes text nullable`
+- `idempotency_key uuid unique`
+- `expires_at timestamptz`
+- `reconciliation_required boolean default false`
 - `created_at`
 - `updated_at`
 - `deleted_at nullable`
@@ -197,6 +203,8 @@ Gunakan satu record aktif sebagai sumber profil website yang dapat diedit admin 
 | instagram_url | text | nullable, URL tervalidasi |
 | currency | text | default `IDR` |
 | timezone | text | default `Asia/Jakarta` |
+| flat_shipping_fee | bigint | default `0`; ongkir tetap MVP |
+| low_stock_threshold | integer | default `5` |
 | seo_title | text | nullable |
 | seo_description | text | nullable |
 | updated_by | uuid | FK profiles |
@@ -243,6 +251,10 @@ create index products_name_search_idx
 
 create index order_status_created_idx
   on public.orders (status, created_at desc);
+
+create index order_reservation_expiry_idx
+  on public.orders (expires_at)
+  where status = 'pending';
 
 create index payment_provider_order_idx
   on public.payment_transactions (provider, provider_order_id);

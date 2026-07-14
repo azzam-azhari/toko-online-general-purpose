@@ -28,12 +28,12 @@ MIDTRANS_NOTIFICATION_URL=
 1. Validasi customer dan item.
 2. Ambil produk aktif dari database.
 3. Validasi stok.
-4. Hitung subtotal di server.
-5. Buat `orders`.
-6. Buat `order_items`.
-7. Panggil Midtrans Snap API.
-8. Simpan `payment_transactions`.
-9. Kembalikan Snap token.
+4. Hitung subtotal dan ongkir tetap di server.
+5. Dalam transaksi database, kunci produk, buat `orders` dan `order_items`, lalu tambah `reserved_stock`.
+6. Panggil Midtrans Snap API dengan idempotency key.
+7. Simpan `payment_transactions`.
+8. Kembalikan Snap token dan waktu kedaluwarsa.
+9. Bila Snap gagal, batalkan order dan lepaskan reservasi secara idempotent.
 
 ## 4. Order Number
 
@@ -65,7 +65,7 @@ Bandingkan menggunakan constant-time comparison.
 | deny | failed | pending/cancelled |
 | cancel | failed | cancelled |
 | expire | expired | cancelled |
-| refund | refunded | cancelled atau status bisnis khusus |
+| refund | refunded | cancelled bila belum diproses; selain itu rekonsiliasi admin |
 
 Mapping final harus mempertimbangkan `fraud_status` dan jenis payment.
 
@@ -81,13 +81,13 @@ Sebelum update:
 
 ## 8. Stock Strategy
 
-Pilihan tahap awal:
-
-- Stok dikurangi setelah payment `paid`.
-- Sebelum checkout, sistem hanya memvalidasi ketersediaan.
-- Risiko overselling ditangani dengan lock/reservation pada fase lanjut.
-
-Alternatif lebih aman untuk volume tinggi adalah reservasi stok dengan expiry.
+- `stock` menyimpan jumlah fisik dan `reserved_stock` menyimpan jumlah yang ditahan.
+- Stok tersedia adalah `stock - reserved_stock`.
+- Buat reservasi atomik selama 30 menit sebelum token Snap dikirim.
+- Saat pembayaran `paid`, kurangi `stock` dan `reserved_stock` dalam transaksi yang sama.
+- Saat `deny`, `cancel`, atau `expire`, lepaskan `reserved_stock` tanpa mengubah `stock`.
+- Cleanup terjadwal melepas reservasi kedaluwarsa secara idempotent.
+- Pembayaran terlambat setelah reservasi dilepas masuk rekonsiliasi admin bila stok tidak lagi cukup; sistem tidak boleh membuat stok negatif.
 
 ## 9. Client Integration
 

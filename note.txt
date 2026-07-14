@@ -1,0 +1,13 @@
+supabase di zamcormps
+
+lakukan phase 2 yang ada pada file [docs/ROADMAP.md](C:/Users/muhaz/Downloads/toko-online-general-purpose/docs/ROADMAP.md) dan ikuti instruksinya
+pastikan sudah membaca semua file .d di dalam folder [docs](C:/Users/muhaz/Downloads/toko-online-general-purpose/docs/) 
+
+=============
+
+lakukan phase 2 yang ada pada file [docs/ROADMAP.md](C:/Users/muhaz/Downloads/toko-online-general-purpose/docs/ROADMAP.md) dan ikuti instruksinya
+pastikan sudah membaca semua file .d di dalam folder [docs](C:/Users/muhaz/Downloads/toko-online-general-purpose/docs/) 
+
+Pastikan supabase sql database tersusun rapih di dalam folder migration.
+pastikan RLS aman.
+input data user login dengan email: admin@gmail.com pass: admin123

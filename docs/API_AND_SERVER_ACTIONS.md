@@ -51,13 +51,21 @@ Request:
 
 ```json
 {
+  "idempotencyKey": "uuid",
   "items": [
     { "productId": "uuid", "quantity": 2 }
   ],
   "customer": {
     "name": "Nama",
     "email": "email@example.com",
-    "phone": "628123456789"
+    "phone": "628123456789",
+    "address": {
+      "line1": "Nama jalan dan nomor",
+      "line2": "Patokan atau unit",
+      "city": "Kota",
+      "province": "Provinsi",
+      "postalCode": "12345"
+    }
   }
 }
 ```
@@ -70,9 +78,12 @@ Response:
 {
   "orderNumber": "ORD-20260714-ABC123",
   "snapToken": "...",
-  "redirectUrl": "..."
+  "redirectUrl": "...",
+  "expiresAt": "2026-07-15T12:30:00.000Z"
 }
 ```
+
+Endpoint ini hanya menerima produk aktif dengan `cta_type = 'midtrans'`. Server wajib menghitung harga dan ongkir, mengunci stok, membuat order, serta mereservasi stok secara atomik. `idempotencyKey` yang sama mengembalikan order yang sama dan tidak boleh membuat reservasi kedua.
 
 ### `POST /api/midtrans/webhook`
 
@@ -110,6 +121,7 @@ validations/
 Gunakan identifier unik untuk operasi pembayaran:
 
 - `order_number` unik.
+- `idempotency_key` unik per checkout.
 - `provider_order_id` unik per provider.
 - Webhook update berdasarkan status terakhir.
 - Jangan menduplikasi transaksi ketika client retry.

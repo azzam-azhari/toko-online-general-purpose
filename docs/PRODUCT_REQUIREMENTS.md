@@ -100,7 +100,10 @@ Menyediakan toko online general-purpose yang cepat, menarik, mudah dikelola, dan
 
 - `custom_url`: membuka URL yang tervalidasi.
 - `whatsapp`: membuat tautan `wa.me` dengan pesan dinamis.
-- `midtrans`: membuat order dan transaksi pembayaran dari server.
+- `midtrans`: menyediakan buy-now/keranjang, membuat order dan transaksi pembayaran dari server, serta mereservasi stok selama 30 menit.
+- Keranjang hanya menerima produk aktif dengan CTA Midtrans; custom URL dan WhatsApp tidak membuat order internal pada MVP.
+- Checkout Midtrans meminta identitas dan alamat pengiriman, lalu menghitung ongkir tetap dari pengaturan toko.
+- Stok tersedia dihitung dari stok fisik dikurangi reservasi dan tidak boleh negatif.
 
 ### Dashboard
 

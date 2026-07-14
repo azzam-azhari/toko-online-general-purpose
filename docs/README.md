@@ -50,6 +50,7 @@ Versi aktual tetap harus diverifikasi melalui `package.json` dan lockfile.
 
 | Dokumen | Tujuan |
 |---|---|
+| `PHASE_0_DISCOVERY.md` | Keputusan final scope, brand/konten, checkout, stok, dan order |
 | `PRODUCT_REQUIREMENTS.md` | Kebutuhan produk, persona, tujuan, dan acceptance criteria |
 | `FEATURES.md` | Daftar fitur publik dan dashboard |
 | `ARCHITECTURE.md` | Arsitektur sistem dan aliran data |

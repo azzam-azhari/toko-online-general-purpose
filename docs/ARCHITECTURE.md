@@ -152,15 +152,17 @@ sequenceDiagram
 
   B->>API: POST /api/checkout/midtrans
   API->>DB: Ambil produk dan hitung ulang nominal
-  API->>DB: Buat order pending
+  API->>DB: Kunci stok, buat order, dan reservasi atomik
   API->>MT: Buat Snap transaction
   MT-->>API: token dan redirect URL
   API->>DB: Simpan payment transaction
   API-->>B: token Snap
   MT->>API: Webhook
   API->>API: Verifikasi signature
-  API->>DB: Update payment + order idempotent
+  API->>DB: Commit/release stok dan update status idempotent
 ```
+
+Jika pembuatan Snap gagal, service checkout membatalkan order dan melepas reservasi. Cleanup terjadwal menangani reservasi yang melewati `orders.expires_at`.
 
 ## 7. Data Fetching
 

@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="NusaMart — belanja produk pilihan untuk gaya hidup modern dengan harga terbaik dan pengiriman cepat.">
+  <title>NusaMart — Pilihan Tepat, Hidup Lebih Hebat</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink: #17231f;
+      --ink-soft: #5f6c67;
+      --cream: #f7f4ed;
+      --paper: #fffdf8;
+      --white: #ffffff;
+      --forest: #164e3c;
+      --forest-dark: #0d392b;
+      --mint: #dcebe1;
+      --coral: #e66f51;
+      --gold: #f2b84b;
+      --line: #e8e5dc;
+      --shadow: 0 20px 55px rgba(23, 35, 31, .09);
+      --radius-lg: 30px;
+      --radius-md: 20px;
+      --radius-sm: 14px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      color: var(--ink);
+      background: var(--paper);
+      font-family: "Plus Jakarta Sans", sans-serif;
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+    body.menu-open { overflow: hidden; }
+    img { display: block; width: 100%; object-fit: cover; }
+    a { color: inherit; text-decoration: none; }
+    button, input { font: inherit; }
+    button { color: inherit; }
+    .container { width: min(1180px, calc(100% - 40px)); margin: 0 auto; }
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      color: var(--forest);
+      font-size: .75rem;
+      font-weight: 800;
+      letter-spacing: .15em;
+      text-transform: uppercase;
+    }
+    .eyebrow::before { content: ""; width: 25px; height: 2px; background: var(--coral); }
+    .section-title {
+      max-width: 620px;
+      margin-top: 12px;
+      font-family: "DM Serif Display", serif;
+      font-size: clamp(2rem, 4vw, 3.2rem);
+      font-weight: 400;
+      line-height: 1.08;
+      letter-spacing: -.025em;
+    }
+    .section-copy { max-width: 570px; margin-top: 13px; color: var(--ink-soft); }
+    .section-head { display: flex; align-items: end; justify-content: space-between; gap: 32px; margin-bottom: 36px; }
+    .text-link { display: inline-flex; align-items: center; gap: 10px; color: var(--forest); font-weight: 800; white-space: nowrap; }
+    .text-link span { transition: transform .25s ease; }
+    .text-link:hover span { transform: translateX(4px); }
+
+    .announcement { background: var(--forest-dark); color: white; font-size: .78rem; }
+    .announcement-inner { min-height: 38px; display: flex; align-items: center; justify-content: center; gap: 18px; text-align: center; }
+    .announcement strong { color: #ffd881; }
+    .announcement a { font-weight: 800; text-decoration: underline; text-underline-offset: 3px; }
+
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: rgba(255, 253, 248, .92);
+      border-bottom: 1px solid rgba(232, 229, 220, .8);
+      backdrop-filter: blur(16px);
+    }
+    .nav { min-height: 78px; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 38px; }
+    .brand { display: inline-flex; align-items: center; gap: 10px; font-size: 1.25rem; font-weight: 800; letter-spacing: -.04em; }
+    .brand-mark { width: 38px; height: 38px; display: grid; place-items: center; color: white; background: var(--forest); border-radius: 12px 12px 4px 12px; font-family: "DM Serif Display", serif; font-size: 1.4rem; }
+    .nav-links { display: flex; justify-content: center; align-items: center; gap: 30px; list-style: none; }
+    .nav-links a { position: relative; color: #46524e; font-size: .87rem; font-weight: 700; }
+    .nav-links a::after { content: ""; position: absolute; left: 0; right: 100%; bottom: -8px; height: 2px; background: var(--coral); transition: right .25s ease; }
+    .nav-links a:hover::after { right: 0; }
+    .nav-actions { display: flex; align-items: center; gap: 9px; }
+    .icon-btn {
+      position: relative;
+      width: 43px;
+      height: 43px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--line);
+      border-radius: 50%;
+      background: var(--white);
+      cursor: pointer;
+      transition: .25s ease;
+    }
+    .icon-btn:hover { color: white; border-color: var(--forest); background: var(--forest); transform: translateY(-2px); }
+    .icon-btn .glyph { font-size: 1.2rem; line-height: 1; }
+    .count { position: absolute; top: -5px; right: -3px; min-width: 18px; height: 18px; padding: 0 4px; display: grid; place-items: center; color: white; background: var(--coral); border: 2px solid var(--paper); border-radius: 10px; font-size: .58rem; font-weight: 800; }
+    .menu-btn { display: none; }
+
+    .hero { padding: 70px 0 52px; background: linear-gradient(115deg, var(--cream) 0%, #fbf9f3 62%, #edf4ef 100%); }
+    .hero-grid { display: grid; grid-template-columns: 1.02fr .98fr; align-items: center; gap: 58px; }
+    .hero h1 { max-width: 660px; margin: 18px 0 22px; font-family: "DM Serif Display", serif; font-size: clamp(3rem, 6.5vw, 5.25rem); font-weight: 400; line-height: .98; letter-spacing: -.045em; }
+    .hero h1 em { color: var(--coral); font-style: normal; }
+    .hero-copy { max-width: 570px; color: var(--ink-soft); font-size: 1.02rem; }
+    .hero-actions { display: flex; align-items: center; gap: 14px; margin-top: 32px; }
+    .btn { min-height: 52px; display: inline-flex; align-items: center; justify-content: center; gap: 10px; padding: 0 23px; border: 1px solid transparent; border-radius: 13px; font-size: .88rem; font-weight: 800; cursor: pointer; transition: .25s ease; }
+    .btn-primary { color: white; background: var(--forest); box-shadow: 0 12px 24px rgba(22, 78, 60, .2); }
+    .btn-primary:hover { background: var(--forest-dark); transform: translateY(-2px); }
+    .btn-secondary { border-color: #d8d5cb; background: rgba(255, 255, 255, .55); }
+    .btn-secondary:hover { border-color: var(--forest); background: white; }
+    .hero-proof { display: flex; align-items: center; gap: 14px; margin-top: 34px; }
+    .avatar-stack { display: flex; }
+    .avatar-stack img { width: 37px; height: 37px; margin-left: -9px; border: 3px solid var(--cream); border-radius: 50%; }
+    .avatar-stack img:first-child { margin-left: 0; }
+    .hero-proof small { display: block; color: var(--ink-soft); font-size: .71rem; }
+    .stars { color: #dc9218; font-size: .83rem; letter-spacing: 1px; }
+    .hero-visual { position: relative; min-height: 545px; }
+    .hero-main-img { position: absolute; inset: 0 45px 0 0; height: 100%; border-radius: 120px 24px 24px 24px; box-shadow: var(--shadow); }
+    .hero-float-card { position: absolute; right: 0; bottom: 34px; width: 210px; padding: 14px; background: rgba(255,255,255,.94); border: 1px solid rgba(255,255,255,.8); border-radius: 19px; box-shadow: 0 18px 42px rgba(23,35,31,.18); backdrop-filter: blur(10px); }
+    .hero-float-card img { height: 108px; border-radius: 12px; }
+    .hero-float-card strong { display: block; margin-top: 10px; font-size: .86rem; }
+    .hero-float-card span { color: var(--coral); font-size: .76rem; font-weight: 800; }
+    .hero-badge { position: absolute; top: 28px; right: 9px; width: 92px; height: 92px; display: grid; place-items: center; padding: 12px; color: white; background: var(--coral); border: 6px solid var(--paper); border-radius: 50%; text-align: center; font-size: .7rem; font-weight: 800; line-height: 1.25; transform: rotate(8deg); }
+
+    .trust-row { padding: 25px 0; border-bottom: 1px solid var(--line); }
+    .trust-inner { display: flex; align-items: center; justify-content: space-between; gap: 22px; }
+    .trust-label { color: var(--ink-soft); font-size: .74rem; font-weight: 700; }
+    .trust-logos { display: flex; flex: 1; align-items: center; justify-content: space-evenly; gap: 22px; color: #7a837f; font-weight: 800; letter-spacing: -.03em; }
+
+    section { scroll-margin-top: 95px; }
+    .promo { padding: 76px 0 0; }
+    .promo-card { position: relative; min-height: 260px; display: grid; grid-template-columns: 1.15fr .85fr; align-items: center; overflow: hidden; padding: 42px 52px; color: white; background: var(--forest); border-radius: var(--radius-lg); }
+    .promo-card::before { content: ""; position: absolute; width: 280px; height: 280px; right: 20%; top: -170px; border: 48px solid rgba(255,255,255,.06); border-radius: 50%; }
+    .promo-card::after { content: ""; position: absolute; width: 220px; height: 220px; right: -70px; bottom: -130px; background: var(--coral); border-radius: 50%; opacity: .85; }
+    .promo-content { position: relative; z-index: 2; }
+    .promo-kicker { color: #b9dac9; font-size: .72rem; font-weight: 800; letter-spacing: .17em; text-transform: uppercase; }
+    .promo h2 { max-width: 570px; margin: 8px 0 20px; font-family: "DM Serif Display", serif; font-size: clamp(2rem, 4vw, 3.2rem); font-weight: 400; line-height: 1.08; }
+    .promo .btn { color: var(--forest-dark); background: #f8c65f; }
+    .promo .btn:hover { background: white; transform: translateY(-2px); }
+    .promo-timer { position: relative; z-index: 2; display: flex; justify-content: flex-end; gap: 10px; }
+    .time-box { width: 76px; padding: 13px 8px; background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.18); border-radius: 14px; text-align: center; backdrop-filter: blur(5px); }
+    .time-box strong { display: block; font-size: 1.45rem; line-height: 1.2; }
+    .time-box span { color: #bbd6ca; font-size: .62rem; text-transform: uppercase; }
+
+    .categories { padding: 100px 0; }
+    .category-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 16px; }
+    .category-card { padding: 12px 12px 18px; border: 1px solid var(--line); border-radius: var(--radius-md); background: white; text-align: center; transition: .28s ease; }
+    .category-card:hover { border-color: transparent; box-shadow: var(--shadow); transform: translateY(-7px); }
+    .category-card img { height: 135px; border-radius: 14px; }
+    .category-card h3 { margin-top: 14px; font-size: .88rem; }
+    .category-card p { color: var(--ink-soft); font-size: .67rem; }
+
+    .products-section { padding: 94px 0; background: var(--cream); }
+    .filter-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 29px; }
+    .filter-btn { padding: 9px 17px; border: 1px solid var(--line); border-radius: 999px; background: white; color: var(--ink-soft); font-size: .75rem; font-weight: 800; cursor: pointer; transition: .2s ease; }
+    .filter-btn:hover, .filter-btn.active { color: white; border-color: var(--forest); background: var(--forest); }
+    .product-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+    .product-card { position: relative; min-width: 0; overflow: hidden; background: white; border-radius: var(--radius-md); box-shadow: 0 5px 0 rgba(23,35,31,.025); transition: .28s ease; }
+    .product-card:hover { box-shadow: var(--shadow); transform: translateY(-6px); }
+    .product-card[hidden] { display: none; }
+    .product-media { position: relative; height: 255px; overflow: hidden; background: #eeeae1; }
+    .product-media img { height: 100%; transition: transform .55s ease; }
+    .product-card:hover .product-media img { transform: scale(1.055); }
+    .product-badge { position: absolute; top: 13px; left: 13px; padding: 5px 9px; color: white; background: var(--coral); border-radius: 7px; font-size: .63rem; font-weight: 800; }
+    .product-badge.new { background: var(--forest); }
+    .wish-btn { position: absolute; top: 13px; right: 13px; width: 36px; height: 36px; display: grid; place-items: center; border: 0; border-radius: 50%; background: rgba(255,255,255,.91); font-size: 1rem; cursor: pointer; transition: .2s ease; }
+    .wish-btn:hover, .wish-btn.active { color: white; background: var(--coral); transform: scale(1.08); }
+    .product-info { padding: 17px 17px 19px; }
+    .product-category { color: var(--ink-soft); font-size: .65rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; }
+    .product-info h3 { min-height: 44px; margin: 4px 0 9px; font-size: .92rem; line-height: 1.45; }
+    .rating { display: flex; align-items: center; gap: 6px; color: #d58e18; font-size: .7rem; }
+    .rating span { color: #85908b; }
+    .price-row { display: flex; align-items: end; justify-content: space-between; gap: 8px; margin-top: 13px; }
+    .price strong { display: block; color: var(--forest); font-size: .95rem; }
+    .price del { color: #a5aca8; font-size: .67rem; }
+    .add-btn { width: 39px; height: 39px; flex: 0 0 auto; display: grid; place-items: center; border: 0; border-radius: 11px; color: white; background: var(--forest); font-size: 1.25rem; cursor: pointer; transition: .2s ease; }
+    .add-btn:hover { background: var(--coral); transform: rotate(6deg); }
+
+    .latest { padding: 100px 0; }
+    .latest-layout { display: grid; grid-template-columns: .85fr 1.15fr; gap: 24px; }
+    .latest-feature { position: relative; min-height: 520px; overflow: hidden; border-radius: var(--radius-lg); }
+    .latest-feature img { height: 100%; }
+    .latest-feature::after { content: ""; position: absolute; inset: 35% 0 0; background: linear-gradient(transparent, rgba(13, 34, 27, .88)); }
+    .latest-overlay { position: absolute; z-index: 2; left: 30px; right: 30px; bottom: 29px; color: white; }
+    .latest-overlay small { color: #c6dfd3; font-weight: 700; }
+    .latest-overlay h3 { margin: 5px 0 13px; font-family: "DM Serif Display", serif; font-size: 2.1rem; font-weight: 400; line-height: 1.08; }
+    .latest-overlay .text-link { color: white; }
+    .latest-list { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .latest-list .product-media { height: 190px; }
+
+    .benefits { padding: 0 0 100px; }
+    .benefit-wrap { display: grid; grid-template-columns: repeat(4, 1fr); padding: 38px 28px; border: 1px solid var(--line); border-radius: var(--radius-lg); }
+    .benefit { display: flex; align-items: flex-start; gap: 15px; padding: 0 22px; border-right: 1px solid var(--line); }
+    .benefit:last-child { border: 0; }
+    .benefit-icon { width: 46px; height: 46px; flex: 0 0 auto; display: grid; place-items: center; color: var(--forest); background: var(--mint); border-radius: 13px; font-size: 1.25rem; }
+    .benefit h3 { margin-bottom: 3px; font-size: .86rem; }
+    .benefit p { color: var(--ink-soft); font-size: .7rem; line-height: 1.55; }
+
+    .testimonials { padding: 100px 0; background: #e9f0ea; }
+    .testimonial-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+    .testimonial-card { padding: 28px; background: var(--white); border-radius: var(--radius-md); transition: .25s ease; }
+    .testimonial-card:hover { box-shadow: var(--shadow); transform: translateY(-4px); }
+    .quote-mark { color: var(--coral); font-family: Georgia, serif; font-size: 3.8rem; line-height: .7; }
+    .testimonial-card > p { min-height: 112px; margin: 17px 0 23px; color: #4d5a55; font-size: .84rem; line-height: 1.8; }
+    .customer { display: flex; align-items: center; gap: 12px; }
+    .customer img { width: 47px; height: 47px; border-radius: 50%; }
+    .customer strong { display: block; font-size: .8rem; }
+    .customer span { color: var(--ink-soft); font-size: .66rem; }
+
+    .cta { padding: 100px 0; }
+    .cta-card { position: relative; overflow: hidden; padding: 72px 30px; color: white; background: var(--forest-dark); border-radius: var(--radius-lg); text-align: center; }
+    .cta-card::before, .cta-card::after { content: ""; position: absolute; border-radius: 50%; }
+    .cta-card::before { width: 260px; height: 260px; left: -90px; top: -150px; border: 45px solid rgba(255,255,255,.05); }
+    .cta-card::after { width: 170px; height: 170px; right: -50px; bottom: -90px; background: var(--coral); opacity: .8; }
+    .cta-content { position: relative; z-index: 2; }
+    .cta h2 { max-width: 730px; margin: 0 auto 14px; font-family: "DM Serif Display", serif; font-size: clamp(2.3rem, 5vw, 4rem); font-weight: 400; line-height: 1.05; }
+    .cta p { max-width: 580px; margin: 0 auto 27px; color: #bcd0c8; }
+    .cta .btn { color: var(--forest-dark); background: #f7c55f; }
+
+    .newsletter { padding: 0 0 100px; }
+    .newsletter-inner { display: grid; grid-template-columns: 1fr 1fr; align-items: center; gap: 55px; padding: 46px 52px; background: var(--cream); border-radius: var(--radius-lg); }
+    .newsletter h2 { margin-bottom: 6px; font-family: "DM Serif Display", serif; font-size: 2rem; font-weight: 400; }
+    .newsletter p { color: var(--ink-soft); font-size: .82rem; }
+    .subscribe-form { display: flex; padding: 6px; background: white; border: 1px solid var(--line); border-radius: 15px; }
+    .subscribe-form:focus-within { outline: 2px solid rgba(22,78,60,.2); border-color: var(--forest); }
+    .subscribe-form input { flex: 1; min-width: 0; padding: 0 14px; border: 0; outline: 0; background: transparent; font-size: .8rem; }
+    .subscribe-form .btn { min-height: 45px; }
+    .form-note { grid-column: 2; min-height: 20px; margin-top: -46px; padding-left: 7px; color: var(--forest); font-size: .7rem; }
+
+    footer { padding: 65px 0 26px; color: #d3ddd8; background: #112a22; }
+    .footer-grid { display: grid; grid-template-columns: 1.4fr repeat(3, .7fr); gap: 54px; }
+    footer .brand { color: white; }
+    footer .brand-mark { color: var(--forest-dark); background: #f4c45d; }
+    .footer-about p { max-width: 340px; margin: 17px 0 21px; color: #91a79e; font-size: .78rem; }
+    .socials { display: flex; gap: 8px; }
+    .socials a { width: 36px; height: 36px; display: grid; place-items: center; border: 1px solid #345047; border-radius: 50%; color: white; font-size: .67rem; font-weight: 800; transition: .2s ease; }
+    .socials a:hover { color: var(--forest-dark); background: #f4c45d; border-color: #f4c45d; }
+    .footer-col h3 { margin-bottom: 17px; color: white; font-size: .8rem; }
+    .footer-col ul { list-style: none; }
+    .footer-col li { margin: 10px 0; }
+    .footer-col a { color: #91a79e; font-size: .74rem; transition: color .2s ease; }
+    .footer-col a:hover { color: white; }
+    .footer-bottom { display: flex; justify-content: space-between; gap: 24px; margin-top: 52px; padding-top: 24px; border-top: 1px solid #29463c; color: #728a80; font-size: .67rem; }
+
+    .toast { position: fixed; z-index: 90; left: 50%; bottom: 24px; padding: 13px 19px; color: white; background: var(--ink); border-radius: 12px; box-shadow: var(--shadow); font-size: .76rem; font-weight: 700; opacity: 0; pointer-events: none; transform: translate(-50%, 20px); transition: .3s ease; }
+    .toast.show { opacity: 1; transform: translate(-50%, 0); }
+    .back-top { position: fixed; z-index: 40; right: 22px; bottom: 22px; width: 43px; height: 43px; display: grid; place-items: center; border: 0; border-radius: 50%; color: white; background: var(--forest); box-shadow: 0 10px 25px rgba(22,78,60,.25); cursor: pointer; opacity: 0; pointer-events: none; transform: translateY(12px); transition: .25s ease; }
+    .back-top.visible { opacity: 1; pointer-events: auto; transform: translateY(0); }
+
+    @media (max-width: 1050px) {
+      .nav-links { gap: 19px; }
+      .hero-grid { gap: 30px; }
+      .hero-visual { min-height: 470px; }
+      .category-grid { grid-template-columns: repeat(3, 1fr); }
+      .product-grid { grid-template-columns: repeat(2, 1fr); }
+      .benefit-wrap { grid-template-columns: 1fr 1fr; gap: 30px 0; }
+      .benefit:nth-child(2) { border: 0; }
+      .footer-grid { grid-template-columns: 1.2fr repeat(3, .7fr); gap: 30px; }
+    }
+
+    @media (max-width: 820px) {
+      .container { width: min(100% - 30px, 680px); }
+      .announcement-inner { min-height: 44px; font-size: .68rem; }
+      .announcement-inner span { display: none; }
+      .nav { grid-template-columns: auto 1fr auto; min-height: 68px; }
+      .menu-btn { display: grid; }
+      .nav-actions .search, .nav-actions .heart { display: none; }
+      .nav-links { position: fixed; inset: 112px 0 auto; height: 0; overflow: hidden; display: flex; flex-direction: column; gap: 0; background: var(--paper); opacity: 0; transition: .3s ease; }
+      .nav-links.open { height: calc(100vh - 112px); padding: 38px 20px; opacity: 1; }
+      .nav-links li { width: 100%; max-width: 620px; border-bottom: 1px solid var(--line); }
+      .nav-links a { display: block; padding: 17px 4px; font-size: 1rem; }
+      .hero { padding-top: 50px; }
+      .hero-grid { grid-template-columns: 1fr; }
+      .hero-content { text-align: center; }
+      .hero-content .eyebrow { justify-content: center; }
+      .hero-copy { margin: 0 auto; }
+      .hero-actions, .hero-proof { justify-content: center; }
+      .hero-visual { min-height: 500px; margin-top: 18px; }
+      .trust-inner { flex-direction: column; }
+      .trust-logos { width: 100%; flex-wrap: wrap; }
+      .promo-card { grid-template-columns: 1fr; gap: 28px; padding: 38px 30px; }
+      .promo-timer { justify-content: flex-start; }
+      .latest-layout { grid-template-columns: 1fr; }
+      .latest-feature { min-height: 490px; }
+      .testimonial-grid { grid-template-columns: 1fr; }
+      .testimonial-card > p { min-height: auto; }
+      .newsletter-inner { grid-template-columns: 1fr; gap: 25px; padding: 37px 30px; }
+      .form-note { grid-column: auto; margin-top: -17px; }
+      .footer-grid { grid-template-columns: 1.3fr 1fr 1fr; }
+      .footer-about { grid-column: 1 / -1; }
+    }
+
+    @media (max-width: 560px) {
+      .section-head { align-items: flex-start; flex-direction: column; gap: 15px; }
+      .hero h1 { font-size: 3.25rem; }
+      .hero-actions { align-items: stretch; flex-direction: column; }
+      .hero-actions .btn { width: 100%; }
+      .hero-visual { min-height: 400px; }
+      .hero-main-img { right: 18px; border-radius: 75px 20px 20px 20px; }
+      .hero-float-card { width: 165px; bottom: 18px; }
+      .hero-float-card img { height: 78px; }
+      .hero-badge { width: 76px; height: 76px; font-size: .58rem; }
+      .promo { padding-top: 58px; }
+      .promo-card { padding: 33px 23px; }
+      .promo-timer { gap: 6px; }
+      .time-box { width: 62px; padding: 10px 4px; }
+      .time-box strong { font-size: 1.13rem; }
+      .categories, .latest, .testimonials, .cta { padding: 75px 0; }
+      .category-grid { grid-template-columns: repeat(2, 1fr); gap: 11px; }
+      .category-card img { height: 120px; }
+      .products-section { padding: 75px 0; }
+      .product-grid, .latest-list { grid-template-columns: 1fr 1fr; gap: 11px; }
+      .product-media, .latest-list .product-media { height: 180px; }
+      .product-info { padding: 13px; }
+      .product-info h3 { font-size: .78rem; }
+      .price strong { font-size: .78rem; }
+      .rating { font-size: .58rem; }
+      .latest-feature { min-height: 430px; }
+      .benefit-wrap { grid-template-columns: 1fr; padding: 28px 20px; gap: 0; }
+      .benefit { padding: 21px 0; border-right: 0; border-bottom: 1px solid var(--line); }
+      .benefit:nth-child(2) { border-bottom: 1px solid var(--line); }
+      .newsletter { padding-bottom: 75px; }
+      .subscribe-form { flex-direction: column; background: transparent; border: 0; gap: 9px; }
+      .subscribe-form input { min-height: 48px; background: white; border: 1px solid var(--line); border-radius: 12px; }
+      .footer-grid { grid-template-columns: 1fr 1fr; }
+      .footer-about { grid-column: 1 / -1; }
+      .footer-bottom { flex-direction: column; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="announcement">
+    <div class="container announcement-inner">
+      <p><strong>Gratis ongkir</strong> untuk pesanan di atas Rp300.000</p>
+      <span>•</span>
+      <a href="#promo">Lihat promo hari ini →</a>
+    </div>
+  </div>
+
+  <header class="site-header">
+    <nav class="container nav" aria-label="Navigasi utama">
+      <a class="brand" href="#home" aria-label="NusaMart beranda"><span class="brand-mark">N</span>NusaMart</a>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="#home">Beranda</a></li>
+        <li><a href="#kategori">Kategori</a></li>
+        <li><a href="#produk">Produk</a></li>
+        <li><a href="#terbaru">Terbaru</a></li>
+        <li><a href="#tentang">Tentang Kami</a></li>
+      </ul>
+      <div class="nav-actions">
+        <button class="icon-btn search" aria-label="Cari produk"><span class="glyph">⌕</span></button>
+        <button class="icon-btn heart" aria-label="Produk favorit"><span class="glyph">♡</span></button>
+        <button class="icon-btn" aria-label="Keranjang belanja"><span class="glyph">▱</span><span class="count" id="cartCount">0</span></button>
+        <button class="icon-btn menu-btn" id="menuBtn" aria-label="Buka menu" aria-expanded="false"><span class="glyph">☰</span></button>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero" id="home">
+      <div class="container hero-grid">
+        <div class="hero-content">
+          <span class="eyebrow">Pilihan terbaik setiap hari</span>
+          <h1>Temukan yang pas, untuk hidup yang <em>lebih berkelas.</em></h1>
+          <p class="hero-copy">Dari kebutuhan harian hingga pelengkap gaya hidup, semuanya dikurasi untuk memberi kualitas terbaik tanpa membuat belanja jadi rumit.</p>
+          <div class="hero-actions">
+            <a class="btn btn-primary" href="#produk">Mulai Belanja <span>→</span></a>
+            <a class="btn btn-secondary" href="#kategori">Jelajahi Kategori</a>
+          </div>
+          <div class="hero-proof">
+            <div class="avatar-stack" aria-hidden="true">
+              <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=100&q=80" alt="">
+              <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=100&q=80" alt="">
+              <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80" alt="">
+            </div>
+            <div><div class="stars" aria-label="Rating 4,9 dari 5">★★★★★</div><small>Dipercaya 12.000+ pelanggan</small></div>
+          </div>
+        </div>
+        <div class="hero-visual" aria-label="Koleksi pilihan NusaMart">
+          <img class="hero-main-img" src="https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?auto=format&fit=crop&w=1100&q=85" alt="Pelanggan menikmati pengalaman belanja modern">
+          <div class="hero-badge">BARU<br>KOLEKSI<br>2026</div>
+          <div class="hero-float-card">
+            <img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=500&q=85" alt="Jam tangan minimalis">
+            <strong>Aruna Classic Watch</strong>
+            <span>Mulai Rp499.000</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="trust-row">
+      <div class="container trust-inner">
+        <span class="trust-label">Pembayaran aman melalui</span>
+        <div class="trust-logos" aria-label="Metode pembayaran tersedia"><span>VISA</span><span>mastercard.</span><span>gopay</span><span>OVO</span><span>DANA</span><span>QRIS</span></div>
+      </div>
+    </div>
+
+    <section class="promo" id="promo">
+      <div class="container promo-card">
+        <div class="promo-content">
+          <div class="promo-kicker">Promo pertengahan tahun</div>
+          <h2>Lebih hemat hingga 40% untuk produk favoritmu.</h2>
+          <a class="btn" href="#produk">Belanja Sekarang →</a>
+        </div>
+        <div class="promo-timer" aria-label="Promo berakhir dalam">
+          <div class="time-box"><strong id="days">03</strong><span>Hari</span></div>
+          <div class="time-box"><strong id="hours">12</strong><span>Jam</span></div>
+          <div class="time-box"><strong id="minutes">45</strong><span>Menit</span></div>
+          <div class="time-box"><strong id="seconds">30</strong><span>Detik</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="categories" id="kategori">
+      <div class="container">
+        <div class="section-head">
+          <div><span class="eyebrow">Kategori unggulan</span><h2 class="section-title">Cari sesuai kebutuhanmu.</h2></div>
+          <a class="text-link" href="#produk">Lihat semua kategori <span>→</span></a>
+        </div>
+        <div class="category-grid">
+          <a class="category-card" href="#produk" data-filter-link="fashion"><img src="https://images.unsplash.com/photo-1445205170230-053b83016050?auto=format&fit=crop&w=500&q=80" alt="Koleksi pakaian fashion"><h3>Fashion</h3><p>240+ Produk</p></a>
+          <a class="category-card" href="#produk" data-filter-link="elektronik"><img src="https://images.unsplash.com/photo-1526738549149-8e07eca6c147?auto=format&fit=crop&w=500&q=80" alt="Perangkat elektronik modern"><h3>Elektronik</h3><p>180+ Produk</p></a>
+          <a class="category-card" href="#produk" data-filter-link="rumah"><img src="https://images.unsplash.com/photo-1524758631624-e2822e304c36?auto=format&fit=crop&w=500&q=80" alt="Dekorasi rumah dan ruang kerja"><h3>Rumah & Hidup</h3><p>320+ Produk</p></a>
+          <a class="category-card" href="#produk" data-filter-link="kecantikan"><img src="https://images.unsplash.com/photo-1596462502278-27bfdc403348?auto=format&fit=crop&w=500&q=80" alt="Produk kecantikan dan perawatan"><h3>Kecantikan</h3><p>150+ Produk</p></a>
+          <a class="category-card" href="#produk" data-filter-link="olahraga"><img src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=500&q=80" alt="Peralatan olahraga"><h3>Olahraga</h3><p>95+ Produk</p></a>
+          <a class="category-card" href="#produk" data-filter-link="aksesori"><img src="https://images.unsplash.com/photo-1511499767150-a48a237f0083?auto=format&fit=crop&w=500&q=80" alt="Koleksi aksesori kacamata"><h3>Aksesori</h3><p>210+ Produk</p></a>
+        </div>
+      </div>
+    </section>
+
+    <section class="products-section" id="produk">
+      <div class="container">
+        <div class="section-head">
+          <div><span class="eyebrow">Pilihan terpopuler</span><h2 class="section-title">Produk unggulan minggu ini.</h2><p class="section-copy">Produk paling disukai pelanggan, dipilih berdasarkan kualitas, ulasan, dan nilai terbaik.</p></div>
+          <a class="text-link" href="#terbaru">Lihat produk terbaru <span>→</span></a>
+        </div>
+        <div class="filter-tabs" role="group" aria-label="Filter produk">
+          <button class="filter-btn active" data-filter="all">Semua</button><button class="filter-btn" data-filter="fashion">Fashion</button><button class="filter-btn" data-filter="elektronik">Elektronik</button><button class="filter-btn" data-filter="rumah">Rumah</button><button class="filter-btn" data-filter="kecantikan">Kecantikan</button><button class="filter-btn" data-filter="olahraga">Olahraga</button><button class="filter-btn" data-filter="aksesori">Aksesori</button>
+        </div>
+        <div class="product-grid">
+          <article class="product-card" data-category="elektronik">
+            <div class="product-media"><img src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=650&q=85" alt="Headphone Sonora Pro berwarna hitam"><span class="product-badge">-25%</span><button class="wish-btn" aria-label="Tambahkan Sonora Pro ke favorit">♡</button></div>
+            <div class="product-info"><span class="product-category">Elektronik</span><h3>Sonora Pro Wireless Headphone</h3><div class="rating">★★★★★ <span>(128)</span></div><div class="price-row"><div class="price"><strong>Rp749.000</strong><del>Rp999.000</del></div><button class="add-btn" aria-label="Tambahkan Sonora Pro ke keranjang">+</button></div></div>
+          </article>
+          <article class="product-card" data-category="aksesori">
+            <div class="product-media"><img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=650&q=85" alt="Jam tangan Aruna Classic"><span class="product-badge new">Terlaris</span><button class="wish-btn" aria-label="Tambahkan Aruna Classic ke favorit">♡</button></div>
+            <div class="product-info"><span class="product-category">Aksesori</span><h3>Aruna Classic Watch</h3><div class="rating">★★★★★ <span>(94)</span></div><div class="price-row"><div class="price"><strong>Rp499.000</strong><del>Rp625.000</del></div><button class="add-btn" aria-label="Tambahkan Aruna Classic ke keranjang">+</button></div></div>
+          </article>
+          <article class="product-card" data-category="fashion">
+            <div class="product-media"><img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=650&q=85" alt="Sepatu Karsa Run berwarna merah"><span class="product-badge">-18%</span><button class="wish-btn" aria-label="Tambahkan Karsa Run ke favorit">♡</button></div>
+            <div class="product-info"><span class="product-category">Fashion</span><h3>Karsa Run Everyday Sneakers</h3><div class="rating">★★★★★ <span>(76)</span></div><div class="price-row"><div class="price"><strong>Rp639.000</strong><del>Rp779.000</del></div><button class="add-btn" aria-label="Tambahkan Karsa Run ke keranjang">+</button></div></div>
+          </article>
+          <article class="product-card" data-category="rumah">
+            <div class="product-media"><img src="https://images.unsplash.com/photo-1503602642458-232111445657?auto=format&fit=crop&w=650&q=85" alt="Kursi kayu Sora Lounge"><span class="product-badge new">Baru</span><button class="wish-btn" aria-label="Tambahkan Sora Lounge ke favorit">♡</button></div>
+            <div class="product-info"><span class="product-category">Rumah & Hidup</span><h3>Sora Lounge Chair</h3><div class="rating">★★★★☆ <span>(51)</span></div><div class="price-row"><div class="price"><strong>Rp1.249.000</strong><del>Rp1.399.000</del></div><button class="add-btn" aria-label="Tambahkan Sora Lounge ke keranjang">+</button></div></div>
+          </article>
+          <article class="product-card" data-category="kecantikan">
+            <div class="product-media"><img src="https://images.unsplash.com/photo-1541643600914-78b084683601?auto=format&fit=crop&w=650&q=85" alt="Parfum Elara Bloom"><span class="product-badge">-20%</span><button class="wish-btn" aria-label="Tambahkan Elara Bloom ke favorit">♡</button></div>
+            <div class="product-info"><span class="product-category">Kecantikan</span><h3>Elara Bloom Eau de Parfum</h3><div class="rating">★★★★★ <span>(110)</span></div><div class="price-row"><div class="price"><strong>Rp359.000</strong><del>Rp449.000</del></div><button class="add-btn" aria-label="Tambahkan Elara Bloom ke keranjang">+</button></div></div>
+          </article>
+          <article class="product-card" data-category="elektronik">
+            <div class="product-media"><img src="https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=650&q=85" alt="Kamera Lumina Mini"><span class="product-badge new">Favorit</span><button class="wish-btn" aria-label="Tambahkan Lumina Mini ke favorit">♡</button></div>
+            <div class="product-info"><span class="product-category">Elektronik</span><h3>Lumina Mini Mirrorless Camera</h3><div class="rating">★★★★★ <span>(83)</span></div><div class="price-row"><div class="price"><strong>Rp5.899.000</strong><del>Rp6.250.000</del></div><button class="add-btn" aria-label="Tambahkan Lumina Mini ke keranjang">+</button></div></div>
+          </article>
+          <article class="product-card" data-category="olahraga">
+            <div class="product-media"><img src="https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&w=650&q=85" alt="Matras yoga Aksa Move"><span class="product-badge">-15%</span><button class="wish-btn" aria-label="Tambahkan Aksa Move ke favorit">♡</button></div>
+            <div class="product-info"><span class="product-category">Olahraga</span><h3>Aksa Move Premium Yoga Mat</h3><div class="rating">★★★★★ <span>(67)</span></div><div class="price-row"><div class="price"><strong>Rp289.000</strong><del>Rp339.000</del></div><button class="add-btn" aria-label="Tambahkan Aksa Move ke keranjang">+</button></div></div>
+          </article>
+          <article class="product-card" data-category="fashion">
+            <div class="product-media"><img src="https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=650&q=85" alt="Tas ransel Nara Daily"><span class="product-badge new">Baru</span><button class="wish-btn" aria-label="Tambahkan Nara Daily ke favorit">♡</button></div>
+            <div class="product-info"><span class="product-category">Fashion</span><h3>Nara Daily Urban Backpack</h3><div class="rating">★★★★☆ <span>(42)</span></div><div class="price-row"><div class="price"><strong>Rp429.000</strong><del>Rp479.000</del></div><button class="add-btn" aria-label="Tambahkan Nara Daily ke keranjang">+</button></div></div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="latest" id="terbaru">
+      <div class="container">
+        <div class="section-head"><div><span class="eyebrow">Baru tiba</span><h2 class="section-title">Segar dari koleksi terbaru.</h2></div><a class="text-link" href="#produk">Lihat semua produk <span>→</span></a></div>
+        <div class="latest-layout">
+          <article class="latest-feature">
+            <img src="https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=900&q=85" alt="Koleksi fashion terbaru NusaMart">
+            <div class="latest-overlay"><small>Koleksi Eksklusif 2026</small><h3>Warna baru untuk cerita barumu.</h3><a class="text-link" href="#produk">Lihat koleksi <span>→</span></a></div>
+          </article>
+          <div class="latest-list">
+            <article class="product-card"><div class="product-media"><img src="https://images.unsplash.com/photo-1572635196237-14b3f281503f?auto=format&fit=crop&w=550&q=85" alt="Kacamata Nami Shade"><span class="product-badge new">Baru</span><button class="wish-btn" aria-label="Tambahkan Nami Shade ke favorit">♡</button></div><div class="product-info"><span class="product-category">Aksesori</span><h3>Nami Shade Sunglasses</h3><div class="price-row"><div class="price"><strong>Rp279.000</strong></div><button class="add-btn" aria-label="Tambahkan Nami Shade ke keranjang">+</button></div></div></article>
+            <article class="product-card"><div class="product-media"><img src="https://images.unsplash.com/photo-1563170351-be82bc888aa4?auto=format&fit=crop&w=550&q=85" alt="Dompet kulit Rupa"><span class="product-badge new">Baru</span><button class="wish-btn" aria-label="Tambahkan Rupa Wallet ke favorit">♡</button></div><div class="product-info"><span class="product-category">Fashion</span><h3>Rupa Leather Wallet</h3><div class="price-row"><div class="price"><strong>Rp319.000</strong></div><button class="add-btn" aria-label="Tambahkan Rupa Wallet ke keranjang">+</button></div></div></article>
+            <article class="product-card"><div class="product-media"><img src="https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=550&q=85" alt="Set kopi Tala Brew"><span class="product-badge new">Baru</span><button class="wish-btn" aria-label="Tambahkan Tala Brew ke favorit">♡</button></div><div class="product-info"><span class="product-category">Rumah & Hidup</span><h3>Tala Brew Coffee Set</h3><div class="price-row"><div class="price"><strong>Rp389.000</strong></div><button class="add-btn" aria-label="Tambahkan Tala Brew ke keranjang">+</button></div></div></article>
+            <article class="product-card"><div class="product-media"><img src="https://images.unsplash.com/photo-1556228578-8c89e6adf883?auto=format&fit=crop&w=550&q=85" alt="Serum kulit Kala Glow"><span class="product-badge new">Baru</span><button class="wish-btn" aria-label="Tambahkan Kala Glow ke favorit">♡</button></div><div class="product-info"><span class="product-category">Kecantikan</span><h3>Kala Glow Daily Serum</h3><div class="price-row"><div class="price"><strong>Rp219.000</strong></div><button class="add-btn" aria-label="Tambahkan Kala Glow ke keranjang">+</button></div></div></article>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="benefits" id="tentang">
+      <div class="container benefit-wrap">
+        <div class="benefit"><div class="benefit-icon">✦</div><div><h3>Kualitas Terkurasi</h3><p>Setiap produk melewati seleksi kualitas kami.</p></div></div>
+        <div class="benefit"><div class="benefit-icon">↗</div><div><h3>Pengiriman Cepat</h3><p>Pesanan diproses maksimal dalam 24 jam.</p></div></div>
+        <div class="benefit"><div class="benefit-icon">✓</div><div><h3>Pembayaran Aman</h3><p>Transaksi terlindungi dan data terenkripsi.</p></div></div>
+        <div class="benefit"><div class="benefit-icon">↺</div><div><h3>Garansi 14 Hari</h3><p>Belanja tenang dengan pengembalian mudah.</p></div></div>
+      </div>
+    </section>
+
+    <section class="testimonials">
+      <div class="container">
+        <div class="section-head"><div><span class="eyebrow">Cerita pelanggan</span><h2 class="section-title">Mereka sudah merasakan bedanya.</h2></div><p class="section-copy">Kami mendengarkan setiap masukan untuk terus menghadirkan pengalaman belanja yang menyenangkan.</p></div>
+        <div class="testimonial-grid">
+          <article class="testimonial-card"><div class="quote-mark">“</div><div class="stars">★★★★★</div><p>Belanja di sini benar-benar praktis. Produknya sama persis dengan foto, kemasannya rapi, dan datang lebih cepat dari perkiraan.</p><div class="customer"><img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=120&q=80" alt="Foto Ayu Lestari"><div><strong>Ayu Lestari</strong><span>Pelanggan sejak 2024</span></div></div></article>
+          <article class="testimonial-card"><div class="quote-mark">“</div><div class="stars">★★★★★</div><p>Customer service responsif banget waktu saya salah pilih ukuran. Proses tukarnya cepat dan tidak berbelit-belit. Sangat direkomendasikan.</p><div class="customer"><img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=120&q=80" alt="Foto Dimas Pratama"><div><strong>Dimas Pratama</strong><span>Pelanggan terverifikasi</span></div></div></article>
+          <article class="testimonial-card"><div class="quote-mark">“</div><div class="stars">★★★★★</div><p>Senang karena koleksinya terasa terkurasi, jadi tidak capek memilih. Harga masuk akal dan kualitas barangnya melebihi ekspektasi.</p><div class="customer"><img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80" alt="Foto Nadia Putri"><div><strong>Nadia Putri</strong><span>Member Nusa+</span></div></div></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="cta">
+      <div class="container cta-card"><div class="cta-content"><h2>Waktunya menemukan favorit barumu.</h2><p>Ribuan produk pilihan menunggu untuk melengkapi keseharianmu. Belanja lebih nyaman, mulai hari ini.</p><a class="btn" href="#produk">Temukan Produkmu →</a></div></div>
+    </section>
+
+    <section class="newsletter" id="kontak">
+      <div class="container newsletter-inner">
+        <div><h2>Dapatkan kabar baik di inbox.</h2><p>Promo eksklusif, produk baru, dan inspirasi pilihan — tanpa spam.</p></div>
+        <form class="subscribe-form" id="subscribeForm"><label for="email" style="position:absolute;left:-9999px">Alamat email</label><input id="email" type="email" placeholder="Masukkan alamat email" required><button class="btn btn-primary" type="submit">Daftar Sekarang</button></form>
+        <p class="form-note" id="formNote" aria-live="polite"></p>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-about"><a class="brand" href="#home"><span class="brand-mark">N</span>NusaMart</a><p>Membawa produk berkualitas lebih dekat untuk membantu setiap orang menjalani hidup yang lebih nyaman dan penuh gaya.</p><div class="socials"><a href="#" aria-label="Instagram">ig</a><a href="#" aria-label="TikTok">tk</a><a href="#" aria-label="Facebook">fb</a><a href="#" aria-label="X">x</a></div></div>
+        <div class="footer-col"><h3>Jelajahi</h3><ul><li><a href="#kategori">Semua Kategori</a></li><li><a href="#produk">Produk Unggulan</a></li><li><a href="#terbaru">Produk Terbaru</a></li><li><a href="#promo">Promo</a></li></ul></div>
+        <div class="footer-col"><h3>Bantuan</h3><ul><li><a href="#">Cara Belanja</a></li><li><a href="#">Pengiriman</a></li><li><a href="#">Pengembalian</a></li><li><a href="#kontak">Hubungi Kami</a></li></ul></div>
+        <div class="footer-col"><h3>Informasi</h3><ul><li><a href="#tentang">Tentang NusaMart</a></li><li><a href="#">Kebijakan Privasi</a></li><li><a href="#">Syarat & Ketentuan</a></li><li><a href="#">Karier</a></li></ul></div>
+      </div>
+      <div class="footer-bottom"><span>© 2026 NusaMart. Seluruh hak dilindungi.</span><span>Dibuat dengan perhatian untuk Indonesia.</span></div>
+    </div>
+  </footer>
+
+  <div class="toast" id="toast" role="status" aria-live="polite">Produk ditambahkan ke keranjang</div>
+  <button class="back-top" id="backTop" aria-label="Kembali ke atas">↑</button>
+
+  <script>
+    const menuBtn = document.getElementById('menuBtn');
+    const navLinks = document.getElementById('navLinks');
+    const cartCount = document.getElementById('cartCount');
+    const toast = document.getElementById('toast');
+    const backTop = document.getElementById('backTop');
+    let cart = 0;
+
+    menuBtn.addEventListener('click', () => {
+      const isOpen = navLinks.classList.toggle('open');
+      document.body.classList.toggle('menu-open', isOpen);
+      menuBtn.setAttribute('aria-expanded', isOpen);
+      menuBtn.querySelector('.glyph').textContent = isOpen ? '×' : '☰';
+    });
+
+    navLinks.querySelectorAll('a').forEach(link => link.addEventListener('click', () => {
+      navLinks.classList.remove('open');
+      document.body.classList.remove('menu-open');
+      menuBtn.setAttribute('aria-expanded', 'false');
+      menuBtn.querySelector('.glyph').textContent = '☰';
+    }));
+
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.add('show');
+      clearTimeout(window.toastTimer);
+      window.toastTimer = setTimeout(() => toast.classList.remove('show'), 2200);
+    }
+
+    document.querySelectorAll('.add-btn').forEach(button => button.addEventListener('click', () => {
+      cart += 1;
+      cartCount.textContent = cart;
+      showToast('Produk ditambahkan ke keranjang');
+    }));
+
+    document.querySelectorAll('.wish-btn').forEach(button => button.addEventListener('click', () => {
+      button.classList.toggle('active');
+      button.textContent = button.classList.contains('active') ? '♥' : '♡';
+      showToast(button.classList.contains('active') ? 'Disimpan ke favorit' : 'Dihapus dari favorit');
+    }));
+
+    const filterButtons = document.querySelectorAll('.filter-btn');
+    const productCards = document.querySelectorAll('#produk .product-card');
+    function filterProducts(category) {
+      filterButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.filter === category));
+      productCards.forEach(card => card.hidden = category !== 'all' && card.dataset.category !== category);
+    }
+    filterButtons.forEach(button => button.addEventListener('click', () => filterProducts(button.dataset.filter)));
+    document.querySelectorAll('[data-filter-link]').forEach(link => link.addEventListener('click', () => filterProducts(link.dataset.filterLink)));
+
+    const deadline = Date.now() + ((3 * 24 * 60 * 60) + (12 * 60 * 60) + (45 * 60) + 30) * 1000;
+    function updateCountdown() {
+      const remaining = Math.max(0, deadline - Date.now());
+      const days = Math.floor(remaining / 86400000);
+      const hours = Math.floor((remaining % 86400000) / 3600000);
+      const minutes = Math.floor((remaining % 3600000) / 60000);
+      const seconds = Math.floor((remaining % 60000) / 1000);
+      document.getElementById('days').textContent = String(days).padStart(2, '0');
+      document.getElementById('hours').textContent = String(hours).padStart(2, '0');
+      document.getElementById('minutes').textContent = String(minutes).padStart(2, '0');
+      document.getElementById('seconds').textContent = String(seconds).padStart(2, '0');
+    }
+    updateCountdown();
+    setInterval(updateCountdown, 1000);
+
+    document.getElementById('subscribeForm').addEventListener('submit', event => {
+      event.preventDefault();
+      const email = document.getElementById('email');
+      document.getElementById('formNote').textContent = `Terima kasih! Penawaran terbaik akan dikirim ke ${email.value}.`;
+      event.target.reset();
+    });
+
+    window.addEventListener('scroll', () => backTop.classList.toggle('visible', window.scrollY > 700), { passive: true });
+    backTop.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+  </script>
+</body>
+</html>

@@ -13,7 +13,7 @@
 - Keunggulan toko.
 - Testimoni.
 - CTA.
-- Newsletter atau kontak.
+- Kontak.
 - Footer.
 
 ### Katalog Produk
@@ -41,6 +41,7 @@
 
 ### Keranjang
 
+- Hanya menerima produk aktif dengan CTA Midtrans.
 - Tambah, ubah jumlah, dan hapus item.
 - Perhitungan subtotal.
 - Validasi stok ulang sebelum checkout.
@@ -50,9 +51,13 @@
 ### Checkout
 
 - Informasi pelanggan.
+- Alamat pengiriman lengkap untuk checkout Midtrans.
 - Ringkasan item.
-- Pilihan jalur checkout sesuai konfigurasi.
+- Custom URL dan WhatsApp langsung menjalankan CTA tanpa masuk keranjang atau membuat order.
+- Midtrans menyediakan buy-now dan checkout keranjang.
+- Ongkir tetap toko; integrasi tarif kurir berada di fase lanjutan.
 - Pembuatan order.
+- Reservasi stok selama 30 menit.
 - Status pembayaran.
 - Halaman sukses, pending, gagal, atau kedaluwarsa.
 
