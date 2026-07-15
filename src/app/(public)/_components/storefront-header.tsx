@@ -1,6 +1,7 @@
 "use client";
 
-import { Menu, Search, ShoppingBag } from "lucide-react";
+import { Menu, Search } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
@@ -15,8 +16,6 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 
-import { useCart } from "./cart-provider";
-
 const navigation = [
   { href: "/", label: "Beranda" },
   { href: "/products", label: "Katalog" },
@@ -25,24 +24,20 @@ const navigation = [
   { href: "/contact", label: "Kontak" },
 ];
 
-function Brand({ name }: { name: string }) {
+function Brand({ name, logoUrl }: { name: string; logoUrl?: string | null }) {
   return (
     <Link className="inline-flex items-center gap-2.5 rounded-md font-bold tracking-tight outline-none focus-visible:ring-2 focus-visible:ring-ring" href="/">
-      <span className="grid size-9 place-items-center rounded-xl bg-primary font-serif text-lg text-primary-foreground shadow-sm">
-        N
-      </span>
+      {logoUrl ? <span className="relative size-9 overflow-hidden rounded-xl bg-white"><Image alt={`Logo ${name}`} className="object-contain" fill sizes="36px" src={logoUrl} /></span> : <span className="grid size-9 place-items-center rounded-xl bg-primary font-serif text-lg text-primary-foreground shadow-sm">{name.slice(0, 1).toUpperCase()}</span>}
       <span className="text-lg">{name}</span>
     </Link>
   );
 }
 
-export function StorefrontHeader({ storeName }: { storeName: string }) {
-  const { itemCount } = useCart();
-
+export function StorefrontHeader({ storeName, logoUrl }: { storeName: string; logoUrl?: string | null }) {
   return (
     <header className="sticky top-0 z-40 border-b bg-background/92 backdrop-blur-xl">
       <div className="mx-auto flex h-18 max-w-7xl items-center gap-4 px-4 sm:px-6 lg:px-8">
-        <Brand name={storeName} />
+        <Brand logoUrl={logoUrl} name={storeName} />
 
         <nav aria-label="Navigasi utama" className="ml-6 hidden items-center gap-6 lg:flex">
           {navigation.map((item) => (
@@ -65,17 +60,6 @@ export function StorefrontHeader({ storeName }: { storeName: string }) {
             <Input className="rounded-full pl-9" id="header-search" name="q" placeholder="Cari produk..." />
           </div>
         </form>
-
-        <Button aria-label={`Keranjang, ${itemCount} produk`} asChild className="relative" size="icon" variant="ghost">
-          <Link href="/cart">
-            <ShoppingBag aria-hidden="true" />
-            {itemCount > 0 ? (
-              <span className="absolute -right-1 -top-1 grid min-h-5 min-w-5 place-items-center rounded-full bg-accent px-1 text-[10px] font-bold text-white">
-                {itemCount > 99 ? "99+" : itemCount}
-              </span>
-            ) : null}
-          </Link>
-        </Button>
 
         <Dialog>
           <DialogTrigger asChild>

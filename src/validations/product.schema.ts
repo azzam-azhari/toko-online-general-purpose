@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { CTA_TYPES, PRODUCT_STATUSES } from "@/types/catalog";
+import { PRODUCT_STATUSES } from "@/types/catalog";
 import { databaseUuidSchema } from "@/validations/database.schema";
 
 const optionalText = (max: number) =>
@@ -38,7 +38,9 @@ export const productFormSchema = z
     sort_order: z.coerce.number().int().min(0).max(999999).default(0),
     seo_title: optionalText(70),
     seo_description: optionalText(160),
-    cta_type: z.enum(CTA_TYPES),
+    cta_type: z.enum(["custom_url", "whatsapp"], {
+      message: "Phase 6 hanya mendukung WhatsApp dan tautan eksternal.",
+    }),
     cta_label: z.string().trim().min(2, "Label tombol wajib diisi.").max(40),
     custom_url: optionalHttpsUrl,
     whatsapp_number: optionalText(24).refine(

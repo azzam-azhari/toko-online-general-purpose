@@ -1,7 +1,29 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Archive, FolderTree, Loader2, Pencil, Plus } from "lucide-react";
+import {
+  Archive,
+  Baby,
+  BookOpen,
+  BriefcaseBusiness,
+  Car,
+  Dumbbell,
+  FolderTree,
+  Gamepad2,
+  Gift,
+  HeartPulse,
+  Home,
+  Loader2,
+  Package,
+  PawPrint,
+  Pencil,
+  Plus,
+  Shirt,
+  ShoppingBag,
+  Smartphone,
+  Sparkles,
+  Utensils,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
 import { type FieldPath, useForm, useWatch } from "react-hook-form";
@@ -43,6 +65,45 @@ import {
   type CategoryFormValues,
 } from "@/validations/category.schema";
 
+const CATEGORY_ICON_OPTIONS: ReadonlyArray<{ value: string; label: string }> = [
+  { value: "shopping-bag", label: "Belanja" },
+  { value: "shirt", label: "Fashion" },
+  { value: "smartphone", label: "Elektronik" },
+  { value: "home", label: "Rumah" },
+  { value: "utensils", label: "Makanan" },
+  { value: "heart-pulse", label: "Kesehatan" },
+  { value: "sparkles", label: "Kecantikan" },
+  { value: "baby", label: "Bayi" },
+  { value: "dumbbell", label: "Olahraga" },
+  { value: "book-open", label: "Buku" },
+  { value: "gift", label: "Hadiah" },
+  { value: "paw-print", label: "Hewan" },
+  { value: "car", label: "Otomotif" },
+  { value: "gamepad-2", label: "Game & Hobi" },
+  { value: "briefcase-business", label: "Kantor" },
+  { value: "package", label: "Umum" },
+];
+
+function CategoryIcon({ value, className }: { value?: string | null; className?: string }) {
+  if (value === "shopping-bag") return <ShoppingBag aria-hidden="true" className={className} />;
+  if (value === "shirt") return <Shirt aria-hidden="true" className={className} />;
+  if (value === "smartphone") return <Smartphone aria-hidden="true" className={className} />;
+  if (value === "home") return <Home aria-hidden="true" className={className} />;
+  if (value === "utensils") return <Utensils aria-hidden="true" className={className} />;
+  if (value === "heart-pulse") return <HeartPulse aria-hidden="true" className={className} />;
+  if (value === "sparkles") return <Sparkles aria-hidden="true" className={className} />;
+  if (value === "baby") return <Baby aria-hidden="true" className={className} />;
+  if (value === "dumbbell") return <Dumbbell aria-hidden="true" className={className} />;
+  if (value === "book-open") return <BookOpen aria-hidden="true" className={className} />;
+  if (value === "gift") return <Gift aria-hidden="true" className={className} />;
+  if (value === "paw-print") return <PawPrint aria-hidden="true" className={className} />;
+  if (value === "car") return <Car aria-hidden="true" className={className} />;
+  if (value === "gamepad-2") return <Gamepad2 aria-hidden="true" className={className} />;
+  if (value === "briefcase-business") return <BriefcaseBusiness aria-hidden="true" className={className} />;
+  if (value === "package") return <Package aria-hidden="true" className={className} />;
+  return <FolderTree aria-hidden="true" className={className} />;
+}
+
 function CategoryFormDialog({ categories, category, open, onOpenChange }: {
   categories: Category[];
   category: Category | null;
@@ -58,7 +119,7 @@ function CategoryFormDialog({ categories, category, open, onOpenChange }: {
       name: category?.name ?? "",
       slug: category?.slug ?? "",
       description: category?.description ?? "",
-      icon: category?.icon ?? "",
+      icon: CATEGORY_ICON_OPTIONS.some((option) => option.value === category?.icon) ? category?.icon ?? "package" : "package",
       parent_id: category?.parent_id ?? "",
       is_active: category?.is_active ?? true,
       sort_order: category?.sort_order ?? 0,
@@ -66,6 +127,7 @@ function CategoryFormDialog({ categories, category, open, onOpenChange }: {
   });
   const watchedName = useWatch({ control: form.control, name: "name" });
   const watchedSlug = useWatch({ control: form.control, name: "slug" });
+  const watchedIcon = useWatch({ control: form.control, name: "icon" });
 
   useEffect(() => {
     if (!slugManual) form.setValue("slug", createSlug(String(watchedName ?? "")));
@@ -107,7 +169,33 @@ function CategoryFormDialog({ categories, category, open, onOpenChange }: {
             <div><Label htmlFor="category-parent">Kategori induk</Label><Select id="category-parent" {...form.register("parent_id")}><option value="">Tanpa induk</option>{categories.filter((option) => option.id !== category?.id).map((option) => <option key={option.id} value={option.id}>{option.name}</option>)}</Select>{form.formState.errors.parent_id ? <p className="mt-1 text-sm text-destructive">{form.formState.errors.parent_id.message}</p> : null}</div>
             <div><Label htmlFor="category-order">Urutan tampil</Label><Input id="category-order" min="0" step="1" type="number" {...form.register("sort_order")} />{form.formState.errors.sort_order ? <p className="mt-1 text-sm text-destructive">{form.formState.errors.sort_order.message}</p> : null}</div>
           </div>
-          <div><Label htmlFor="category-icon">Nama ikon</Label><Input id="category-icon" placeholder="Opsional, contoh: shopping-bag" {...form.register("icon")} /></div>
+          <fieldset>
+            <legend className="text-sm font-medium">Icon</legend>
+            <p className="mt-1 text-xs text-muted-foreground" id="category-icon-help">Pilih ikon yang paling sesuai dengan isi kategori.</p>
+            <input type="hidden" {...form.register("icon")} />
+            <div aria-describedby="category-icon-help" aria-label="Pilihan icon kategori" className="mt-3 grid grid-cols-4 gap-2 sm:grid-cols-8" role="radiogroup">
+              {CATEGORY_ICON_OPTIONS.map((option) => {
+                const selected = watchedIcon === option.value;
+                return (
+                  <Button
+                    aria-checked={selected}
+                    className="h-auto min-h-16 flex-col gap-1 px-1.5 py-2 text-[11px]"
+                    key={option.value}
+                    onClick={() => form.setValue("icon", option.value, { shouldDirty: true, shouldValidate: true })}
+                    role="radio"
+                    tabIndex={selected ? 0 : -1}
+                    title={option.label}
+                    type="button"
+                    variant={selected ? "secondary" : "outline"}
+                  >
+                    <CategoryIcon className="size-5" value={option.value} />
+                    <span className="max-w-full truncate">{option.label}</span>
+                  </Button>
+                );
+              })}
+            </div>
+            {form.formState.errors.icon ? <p className="mt-1 text-sm text-destructive">{form.formState.errors.icon.message}</p> : null}
+          </fieldset>
           <label className="flex items-center gap-3 rounded-lg border p-3 text-sm"><input className="size-4 accent-primary" type="checkbox" {...form.register("is_active")} /><span><strong className="block">Kategori aktif</strong><span className="text-xs text-muted-foreground">Kategori aktif siap digunakan pada katalog publik.</span></span></label>
         </form>
         <DialogFooter>
@@ -142,7 +230,7 @@ export function CategoryManager({ categories }: { categories: Category[] }) {
       {categories.length === 0 ? <EmptyState action={<Button onClick={openCreate} type="button"><Plus aria-hidden="true" /> Tambah Kategori</Button>} description="Buat kategori pertama untuk mengelompokkan produk." icon={FolderTree} title="Belum ada kategori" /> : (
         <div className="grid gap-3">
           {categories.map((category) => (
-            <Card key={category.id}><CardContent className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between"><div className="flex min-w-0 items-start gap-3"><span className="grid size-10 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary"><FolderTree aria-hidden="true" className="size-5" /></span><div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><h2 className="font-semibold">{category.name}</h2><Badge variant={category.is_active ? "secondary" : "outline"}>{category.is_active ? "Aktif" : "Nonaktif"}</Badge></div><p className="mt-1 text-xs text-muted-foreground">/{category.slug} · Urutan {category.sort_order}{category.parent_id ? ` · Induk: ${parentNames.get(category.parent_id) ?? "—"}` : ""}</p>{category.description ? <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">{category.description}</p> : null}</div></div><div className="flex justify-end gap-1"><Button aria-label={`Edit ${category.name}`} onClick={() => openEdit(category)} size="icon" type="button" variant="ghost"><Pencil aria-hidden="true" /></Button><ArchiveCategoryButton category={category} /></div></CardContent></Card>
+            <Card key={category.id}><CardContent className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between"><div className="flex min-w-0 items-start gap-3"><span className="grid size-10 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary"><CategoryIcon className="size-5" value={category.icon} /></span><div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><h2 className="font-semibold">{category.name}</h2><Badge variant={category.is_active ? "secondary" : "outline"}>{category.is_active ? "Aktif" : "Nonaktif"}</Badge></div><p className="mt-1 text-xs text-muted-foreground">/{category.slug} · Urutan {category.sort_order}{category.parent_id ? ` · Induk: ${parentNames.get(category.parent_id) ?? "—"}` : ""}</p>{category.description ? <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">{category.description}</p> : null}</div></div><div className="flex justify-end gap-1"><Button aria-label={`Edit ${category.name}`} onClick={() => openEdit(category)} size="icon" type="button" variant="ghost"><Pencil aria-hidden="true" /></Button><ArchiveCategoryButton category={category} /></div></CardContent></Card>
           ))}
         </div>
       )}

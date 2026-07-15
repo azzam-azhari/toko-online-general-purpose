@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { buildWhatsAppUrl, getDiscountPercentage, normalizeWhatsAppNumber, serializeJsonLd } from "@/lib/storefront";
+import { buildWhatsAppUrl, getDiscountPercentage, normalizeWhatsAppNumber, parseCatalogPriceFilter, serializeJsonLd } from "@/lib/storefront";
 import type { StorefrontProduct, StorefrontSettings } from "@/types/storefront";
 
 const product = {
@@ -35,6 +35,7 @@ const settings = {
   tagline: null,
   description: null,
   logo_path: null,
+  favicon_path: null,
   contact_email: null,
   contact_phone: null,
   whatsapp_number: null,
@@ -70,6 +71,14 @@ describe("storefront helpers", () => {
   it("only returns discounts for a valid comparison price", () => {
     expect(getDiscountPercentage(75000, 100000)).toBe(25);
     expect(getDiscountPercentage(100000, 100000)).toBeNull();
+  });
+
+  it("does not turn an empty catalog price filter into zero", () => {
+    expect(parseCatalogPriceFilter(undefined)).toBeUndefined();
+    expect(parseCatalogPriceFilter("")).toBeUndefined();
+    expect(parseCatalogPriceFilter("   ")).toBeUndefined();
+    expect(parseCatalogPriceFilter("25000")).toBe(25000);
+    expect(parseCatalogPriceFilter("-1")).toBeUndefined();
   });
 
   it("escapes HTML-sensitive characters in JSON-LD", () => {

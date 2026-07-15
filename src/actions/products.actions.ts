@@ -276,7 +276,7 @@ function productPayload(values: ProductFormValues, actorId: string) {
     whatsapp_number: values.whatsapp_number ?? null,
     whatsapp_template: values.whatsapp_template ?? null,
     open_in_new_tab: values.open_in_new_tab,
-    midtrans_enabled: values.cta_type === "midtrans",
+    midtrans_enabled: false,
     updated_by: actorId,
   };
 }

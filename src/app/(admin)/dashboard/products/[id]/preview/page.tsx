@@ -26,7 +26,7 @@ export default async function ProductPreviewPage({ params }: { params: Promise<{
             price: product.price,
             compare_at_price: product.compare_at_price ?? undefined,
             stock: product.stock,
-            cta_type: product.cta_type,
+            cta_type: product.cta_type === "custom_url" ? "custom_url" : "whatsapp",
             cta_label: product.cta_label,
           }}
         />

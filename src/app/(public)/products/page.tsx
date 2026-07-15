@@ -12,6 +12,7 @@ import {
   getStorefrontProducts,
   getStorefrontSettings,
 } from "@/lib/repositories/storefront.repository";
+import { parseCatalogPriceFilter } from "@/lib/storefront";
 import type { CatalogSort } from "@/types/storefront";
 
 import { ProductCard } from "../_components/product-card";
@@ -26,11 +27,6 @@ type SearchParams = Record<string, string | string[] | undefined>;
 
 function first(value: string | string[] | undefined) {
   return Array.isArray(value) ? value[0] : value;
-}
-
-function positiveNumber(value: string | undefined) {
-  const parsed = Number(value);
-  return Number.isFinite(parsed) && parsed >= 0 ? parsed : undefined;
 }
 
 function catalogHref(params: SearchParams, page: number) {
@@ -54,8 +50,8 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
     ? (sortValue as CatalogSort)
     : "latest";
   const page = Math.max(1, Number(first(params.page)) || 1);
-  const minPrice = positiveNumber(first(params.minPrice));
-  const maxPrice = positiveNumber(first(params.maxPrice));
+  const minPrice = parseCatalogPriceFilter(first(params.minPrice));
+  const maxPrice = parseCatalogPriceFilter(first(params.maxPrice));
 
   const [settings, categories, result] = await Promise.all([
     getStorefrontSettings(),

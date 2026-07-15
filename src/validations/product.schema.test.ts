@@ -49,4 +49,8 @@ describe("productFormSchema", () => {
     });
     expect(parsed.success).toBe(false);
   });
+
+  it("menonaktifkan CTA Midtrans sampai Phase 8", () => {
+    expect(productFormSchema.safeParse({ ...validProduct, cta_type: "midtrans" }).success).toBe(false);
+  });
 });

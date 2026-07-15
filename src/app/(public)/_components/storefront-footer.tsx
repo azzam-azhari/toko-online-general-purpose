@@ -1,16 +1,19 @@
 import { Camera, Mail, MapPin, Phone, Share2 } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
+import { getPublicAssetUrl } from "@/lib/storefront";
 import type { StorefrontSettings } from "@/types/storefront";
 
 export function StorefrontFooter({ settings }: { settings: StorefrontSettings }) {
+  const logoUrl = getPublicAssetUrl(settings.asset_base_url, "store-assets", settings.logo_path);
   return (
     <footer className="mt-24 border-t bg-[#0d392b] text-white">
       <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 md:grid-cols-2 lg:grid-cols-4 lg:px-8">
         <div>
           <Link className="inline-flex items-center gap-2.5 font-bold" href="/">
-            <span className="grid size-9 place-items-center rounded-xl bg-[#f2b84b] font-serif text-lg text-[#0d392b]">N</span>
+            {logoUrl ? <span className="relative size-9 overflow-hidden rounded-xl bg-white"><Image alt={`Logo ${settings.store_name}`} className="object-contain" fill sizes="36px" src={logoUrl} /></span> : <span className="grid size-9 place-items-center rounded-xl bg-[#f2b84b] font-serif text-lg text-[#0d392b]">{settings.store_name.slice(0, 1).toUpperCase()}</span>}
             <span className="text-lg">{settings.store_name}</span>
           </Link>
           <p className="mt-4 max-w-sm text-sm leading-7 text-white/65">
@@ -36,7 +39,7 @@ export function StorefrontFooter({ settings }: { settings: StorefrontSettings })
             <li><Link className="hover:text-white" href="/products">Semua Produk</Link></li>
             <li><Link className="hover:text-white" href="/products?sort=latest">Produk Terbaru</Link></li>
             <li><Link className="hover:text-white" href="/products?sort=popular">Produk Pilihan</Link></li>
-            <li><Link className="hover:text-white" href="/cart">Keranjang</Link></li>
+            {settings.whatsapp_number ? <li><a className="hover:text-white" href={`https://wa.me/${settings.whatsapp_number.replace(/\D/g, "").replace(/^0/, "62")}`}>Pesan via WhatsApp</a></li> : null}
           </ul>
         </div>
 

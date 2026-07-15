@@ -1,13 +1,11 @@
 "use client";
 
 import { ShoppingBag } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-import { type CartProduct, useCart } from "./cart-provider";
+import type { CartProduct } from "./cart-provider";
 
 type PurchaseButtonProps = {
   product: Omit<CartProduct, "ctaType"> & { ctaType: "midtrans" | "custom_url" | "whatsapp" };
@@ -26,21 +24,12 @@ export function PurchaseButton({
   className,
   compact = false,
 }: PurchaseButtonProps) {
-  const cart = useCart();
-  const router = useRouter();
-  const isUnavailable = product.availableStock < 1 || (product.ctaType !== "midtrans" && !href);
+  const isUnavailable = product.availableStock < 1 || product.ctaType === "midtrans" || !href;
 
   function handlePurchase(event: React.MouseEvent<HTMLButtonElement>) {
     event.preventDefault();
     event.stopPropagation();
     if (isUnavailable) return;
-
-    if (product.ctaType === "midtrans") {
-      cart.addItem({ ...product, ctaType: "midtrans" });
-      toast.success(`${product.name} ditambahkan ke keranjang.`);
-      router.push("/cart");
-      return;
-    }
 
     if (href) {
       if (openInNewTab || product.ctaType === "whatsapp") {
@@ -61,7 +50,7 @@ export function PurchaseButton({
       type="button"
     >
       <ShoppingBag aria-hidden="true" />
-      {isUnavailable ? "Stok Habis" : label}
+      {product.ctaType === "midtrans" ? "Belum Tersedia" : isUnavailable ? "Stok Habis" : label}
     </Button>
   );
 }

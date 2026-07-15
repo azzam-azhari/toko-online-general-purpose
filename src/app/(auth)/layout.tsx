@@ -1,4 +1,5 @@
 import { ShieldCheck } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 
 export default function AuthLayout({ children }: Readonly<{ children: React.ReactNode }>) {
@@ -8,8 +9,8 @@ export default function AuthLayout({ children }: Readonly<{ children: React.Reac
       <div aria-hidden="true" className="absolute -bottom-32 -right-32 size-80 rounded-full bg-accent/15 blur-3xl" />
       <div className="relative z-10 min-w-0 w-full max-w-md">
         <Link className="mx-auto mb-6 flex w-fit items-center gap-3 text-foreground" href="/">
-          <span className="grid size-11 place-items-center rounded-xl rounded-bl-sm bg-primary font-serif text-2xl text-primary-foreground">
-            N
+          <span className="relative size-11 overflow-hidden rounded-xl bg-white">
+            <Image alt="Logo NusaMart" className="object-contain" fill priority sizes="44px" src="/logo/nusamart-logo.png" />
           </span>
           <span>
             <strong className="block text-lg leading-none">NusaMart</strong>

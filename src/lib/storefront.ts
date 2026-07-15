@@ -6,6 +6,7 @@ export const DEFAULT_STORE_SETTINGS: StorefrontSettings = {
   tagline: "Pilihan Tepat, Hidup Lebih Hebat",
   description: "Produk pilihan untuk membuat belanja kebutuhan harian dan gaya hidup terasa lebih praktis.",
   logo_path: null,
+  favicon_path: null,
   contact_email: null,
   contact_phone: null,
   whatsapp_number: null,
@@ -68,6 +69,12 @@ export function formatRupiah(value: number): string {
     currency: "IDR",
     maximumFractionDigits: 0,
   }).format(value);
+}
+
+export function parseCatalogPriceFilter(value?: string): number | undefined {
+  if (!value?.trim()) return undefined;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed >= 0 ? parsed : undefined;
 }
 
 export function getDiscountPercentage(price: number, compareAtPrice: number | null): number | null {

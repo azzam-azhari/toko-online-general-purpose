@@ -6,6 +6,7 @@ export type StorefrontSettings = {
   tagline: string | null;
   description: string | null;
   logo_path: string | null;
+  favicon_path: string | null;
   contact_email: string | null;
   contact_phone: string | null;
   whatsapp_number: string | null;

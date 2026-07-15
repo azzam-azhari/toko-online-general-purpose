@@ -1,6 +1,6 @@
 "use client";
 
-import { Activity, FolderTree, LayoutDashboard, Menu, Package } from "lucide-react";
+import { Activity, Boxes, FolderTree, LayoutDashboard, Menu, Package, ReceiptText, Settings, PanelsTopLeft } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -19,6 +19,10 @@ const navigation = [
   { href: "/dashboard", label: "Ringkasan", icon: LayoutDashboard },
   { href: "/dashboard/products", label: "Produk", icon: Package },
   { href: "/dashboard/categories", label: "Kategori", icon: FolderTree },
+  { href: "/dashboard/orders", label: "Pesanan", icon: ReceiptText },
+  { href: "/dashboard/inventory", label: "Stok Rendah", icon: Boxes },
+  { href: "/dashboard/content", label: "Konten Website", icon: PanelsTopLeft },
+  { href: "/dashboard/settings", label: "Pengaturan", icon: Settings },
   { href: "/dashboard/activity", label: "Aktivitas", icon: Activity },
 ];
 
@@ -46,7 +50,7 @@ function NavigationLinks({ mobile = false }: { mobile?: boolean }) {
   );
 }
 
-export function DashboardNav({ variant }: { variant: "desktop" | "mobile" }) {
+export function DashboardNav({ variant, storeName }: { variant: "desktop" | "mobile"; storeName: string }) {
   if (variant === "desktop") {
     return (
       <aside className="h-fit rounded-xl border bg-background p-3 shadow-sm">
@@ -64,8 +68,8 @@ export function DashboardNav({ variant }: { variant: "desktop" | "mobile" }) {
           </Button>
         </DialogTrigger>
         <DialogContent className="left-0 top-0 h-dvh w-[min(86vw,340px)] max-w-none translate-x-0 translate-y-0 rounded-none rounded-r-2xl p-5">
-          <DialogTitle className="font-serif text-2xl">NusaMart</DialogTitle>
-          <DialogDescription>Navigasi dashboard katalog</DialogDescription>
+          <DialogTitle className="font-serif text-2xl">{storeName}</DialogTitle>
+          <DialogDescription>Navigasi dashboard operasional</DialogDescription>
           <div className="mt-6">
             <NavigationLinks mobile />
           </div>

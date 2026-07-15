@@ -33,4 +33,10 @@ describe("Supabase development seed", () => {
       expect(matches).toHaveLength(3);
     }
   });
+
+  it("hanya mengaktifkan WhatsApp dan tautan eksternal pada Phase 6", () => {
+    expect(seed).not.toContain("'midtrans'");
+    expect(seed).toContain("'whatsapp'");
+    expect(seed).toContain("'custom_url'");
+  });
 });

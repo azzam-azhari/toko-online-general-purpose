@@ -176,7 +176,7 @@ export default async function HomePage() {
           {[
             [BadgeCheck, "Informasi yang jelas", "Harga, stok, dan cara membeli ditampilkan dekat dengan keputusan Anda."],
             [Smartphone, "Nyaman di perangkat apa pun", "Jelajahi katalog dengan nyaman dari ponsel, tablet, maupun desktop."],
-            [ShoppingBag, "Cara beli yang sesuai", "Setiap produk mengarahkan Anda ke WhatsApp, tautan pilihan, atau keranjang."],
+            [ShoppingBag, "Cara beli yang sesuai", "Setiap produk mengarahkan Anda ke WhatsApp atau tautan pembelian yang telah dipilih toko."],
           ].map(([Icon, title, copy]) => (
             <Card className="border-border/70" key={String(title)}><CardContent className="p-6"><span className="grid size-12 place-items-center rounded-2xl bg-primary/10 text-primary"><Icon aria-hidden="true" className="size-5" /></span><h2 className="mt-5 font-bold">{String(title)}</h2><p className="mt-2 text-sm leading-6 text-muted-foreground">{String(copy)}</p></CardContent></Card>
           ))}

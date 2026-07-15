@@ -7,8 +7,7 @@ export const metadata: Metadata = { title: "Kebijakan Privasi", description: "Ke
 
 const sections = [
   ["Informasi yang diproses", "Saat Anda hanya menjelajah katalog, Anda tidak perlu membuat akun pelanggan. Informasi kontak, identitas, dan alamat baru diproses ketika Anda memilih jalur pembelian yang memerlukannya atau menghubungi toko."],
-  ["Keranjang perangkat", "Isi keranjang disimpan sementara di penyimpanan browser pada perangkat Anda. Data ini digunakan agar pilihan produk tetap tersedia saat Anda kembali membuka storefront dan dapat dihapus dengan mengosongkan keranjang atau data situs pada browser."],
-  ["Layanan pihak ketiga", "Produk dapat mengarahkan Anda ke WhatsApp, tautan eksternal, atau layanan pembayaran. Setelah berpindah ke layanan tersebut, pemrosesan data juga mengikuti kebijakan privasi penyedia terkait."],
+  ["Layanan pihak ketiga", "Produk dapat mengarahkan Anda ke WhatsApp atau tautan eksternal. Setelah berpindah ke layanan tersebut, pemrosesan data juga mengikuti kebijakan privasi penyedia terkait."],
   ["Keamanan dan retensi", "Toko menerapkan pembatasan akses pada area internal dan berupaya menyimpan data hanya selama diperlukan untuk transaksi, operasional, kewajiban hukum, dan penyelesaian sengketa."],
   ["Hak dan pertanyaan Anda", "Anda dapat menghubungi toko untuk menanyakan data yang berkaitan dengan transaksi atau meminta koreksi sesuai ketentuan yang berlaku. Verifikasi identitas dapat diminta sebelum permintaan diproses."],
 ] as const;

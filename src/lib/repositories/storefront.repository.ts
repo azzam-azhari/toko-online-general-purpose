@@ -95,7 +95,7 @@ export const getStorefrontSettings = cache(async (): Promise<StorefrontSettings>
   const { data, error } = await supabase
     .from("store_settings")
     .select(
-      "id, store_name, tagline, description, logo_path, contact_email, contact_phone, whatsapp_number, address, business_hours, facebook_url, instagram_url, currency, flat_shipping_fee, seo_title, seo_description",
+      "id, store_name, tagline, description, logo_path, favicon_path, contact_email, contact_phone, whatsapp_number, address, business_hours, facebook_url, instagram_url, currency, flat_shipping_fee, seo_title, seo_description",
     )
     .limit(1)
     .maybeSingle();
@@ -137,6 +137,7 @@ export async function getStorefrontProducts(filters: CatalogFilters = {}): Promi
     .from("products")
     .select(PRODUCT_SELECT, { count: "exact" })
     .eq("status", "active")
+    .neq("cta_type", "midtrans")
     .is("deleted_at", null);
 
   const search = sanitizeSearch(filters.search);
@@ -220,6 +221,7 @@ export const getStorefrontProductBySlug = cache(async (slug: string): Promise<St
     .select(PRODUCT_SELECT)
     .eq("slug", slug)
     .eq("status", "active")
+    .neq("cta_type", "midtrans")
     .is("deleted_at", null)
     .maybeSingle();
 

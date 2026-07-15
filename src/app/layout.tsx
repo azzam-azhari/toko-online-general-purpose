@@ -21,6 +21,7 @@ export const metadata: Metadata = {
   title: "NusaMart",
   description:
     "Produk pilihan untuk membuat belanja kebutuhan harian dan gaya hidup terasa lebih praktis.",
+  icons: { icon: "/favicon.ico" },
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
@@ -28,11 +29,9 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <html lang="id" suppressHydrationWarning>
       <body className={`${plusJakartaSans.variable} ${dmSerifDisplay.variable} antialiased`}>
         <ThemeProvider
-          attribute="class"
           defaultTheme="light"
           disableTransitionOnChange
           enableSystem={false}
-          forcedTheme="light"
         >
           {children}
           <Toaster closeButton position="top-right" richColors />

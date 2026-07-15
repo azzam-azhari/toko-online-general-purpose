@@ -1,4 +1,4 @@
-import { Activity, FolderTree, Package } from "lucide-react";
+import { Activity, FolderTree, Package, PanelsTopLeft, ReceiptText, Store } from "lucide-react";
 
 import type { ActivityLog } from "@/types/catalog";
 
@@ -10,6 +10,17 @@ const actionLabels: Record<string, string> = {
   "category.created": "menambahkan kategori",
   "category.updated": "memperbarui kategori",
   "category.archived": "mengarsipkan kategori",
+  "order.status_changed": "mengubah status pesanan",
+  "banner.created": "menambahkan banner",
+  "banner.updated": "memperbarui banner",
+  "banner.archived": "mengarsipkan banner",
+  "testimonial.created": "menambahkan testimoni",
+  "testimonial.updated": "memperbarui testimoni",
+  "testimonial.archived": "mengarsipkan testimoni",
+  "faq.created": "menambahkan FAQ",
+  "faq.updated": "memperbarui FAQ",
+  "faq.archived": "mengarsipkan FAQ",
+  "store_settings.updated": "memperbarui profil toko",
 };
 
 const dateFormatter = new Intl.DateTimeFormat("id-ID", {
@@ -20,7 +31,7 @@ const dateFormatter = new Intl.DateTimeFormat("id-ID", {
 
 function getEntityName(log: ActivityLog) {
   const source = log.after_data ?? log.before_data;
-  const name = source?.name;
+  const name = source?.name ?? source?.title ?? source?.question ?? source?.author_name ?? source?.order_number ?? source?.store_name;
   return typeof name === "string" ? name : null;
 }
 
@@ -37,7 +48,7 @@ export function ActivityList({ logs }: { logs: ActivityLog[] }) {
   return (
     <ol className="divide-y">
       {logs.map((log) => {
-        const Icon = log.entity_type === "category" ? FolderTree : Package;
+        const Icon = log.entity_type === "category" ? FolderTree : log.entity_type === "order" ? ReceiptText : log.entity_type === "store_settings" ? Store : ["banner", "testimonial", "faq"].includes(log.entity_type) ? PanelsTopLeft : Package;
         const entityName = getEntityName(log);
         return (
           <li className="flex gap-3 px-5 py-4" key={log.id}>

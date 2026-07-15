@@ -62,14 +62,15 @@ Keputusan final: [`PHASE_0_DISCOVERY.md`](./PHASE_0_DISCOVERY.md).
 
 Integrasi Midtrans beserta order dan pembayaran tetap dijadwalkan pada Fase 8 agar dikerjakan pada tahap akhir setelah fitur operasional dan quality selesai.
 
-## Fase 6 — Operasional
+## Fase 6 — Operasional ✅
 
-- Order management.
-- Banner, FAQ, dan testimonial.
-- Profil website: nama toko, identitas visual, kontak, alamat, jam operasional, dan media sosial.
-- Store settings dengan pratinjau sederhana.
-- Low-stock report.
-- Sales chart.
+- [x] Order management dengan filter, detail, timeline, dan transisi status yang tervalidasi.
+- [x] Banner, FAQ, dan testimonial beserta aturan jadwal dan persetujuan publikasi.
+- [x] Profil website: nama toko, identitas visual, kontak, alamat, jam operasional, dan media sosial.
+- [x] Store settings dengan pratinjau sederhana.
+- [x] Low-stock report berdasarkan stok tersedia dan threshold toko.
+- [x] Sales chart berdasarkan order dengan pembayaran lunas.
+- [x] Metode pembelian aktif dibatasi ke WhatsApp dan tautan eksternal; Midtrans tetap ditunda sampai Fase 8.
 
 ## Fase 7 — Quality
 
@@ -81,10 +82,8 @@ Integrasi Midtrans beserta order dan pembayaran tetap dijadwalkan pada Fase 8 ag
 
 ## Fase 8 — Checkout dan Production
 
-- Midtrans Snap.
 - Orders dan order items.
-- Payment transaction.
-- Webhook pembayaran yang terverifikasi dan idempotent.
+- Payment transaction. (pastikan hanya memakai Whatsapp dan link eksternal)
 - Status order.
 - Production migration.
 - Domain.
@@ -104,3 +103,8 @@ Integrasi Midtrans beserta order dan pembayaran tetap dijadwalkan pada Fase 8 ag
 - Email notification.
 - Analytics funnel.
 - Multi-language.
+
+## Midtrans setup
+- Midtrans Snap.
+- Webhook pembayaran yang terverifikasi dan idempotent.
+- Keranjang user

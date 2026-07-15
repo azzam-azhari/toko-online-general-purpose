@@ -104,7 +104,7 @@ export function ProductForm({ categories, product }: ProductFormProps) {
       sort_order: product?.sort_order ?? 0,
       seo_title: product?.seo_title ?? "",
       seo_description: product?.seo_description ?? "",
-      cta_type: product?.cta_type ?? "whatsapp",
+      cta_type: product?.cta_type === "custom_url" ? "custom_url" : "whatsapp",
       cta_label: product?.cta_label ?? "Beli Sekarang",
       custom_url: product?.custom_url ?? "",
       whatsapp_number: product?.whatsapp_number ?? "",
@@ -307,9 +307,6 @@ export function ProductForm({ categories, product }: ProductFormProps) {
               <Select id="cta_type" {...form.register("cta_type")}>
                 <option value="whatsapp">WhatsApp</option>
                 <option value="custom_url">Tautan eksternal</option>
-                <option className="text-muted-foreground/50" disabled={!product} value="midtrans">
-                  Midtrans
-                </option>
               </Select>
               <FieldError message={form.formState.errors.cta_type?.message} />
             </div>
@@ -346,11 +343,9 @@ export function ProductForm({ categories, product }: ProductFormProps) {
             </div>
           ) : null}
 
-          {watchedCtaType === "midtrans" ? (
-            <p className="rounded-lg border border-primary/20 bg-primary/5 p-4 text-sm leading-6 text-primary">
-              Produk ini dapat dibeli melalui checkout Midtrans dan stoknya akan dikelola oleh sistem.
-            </p>
-          ) : null}
+          <p className="rounded-lg border bg-secondary/50 p-4 text-xs leading-5 text-muted-foreground">
+            Midtrans belum aktif pada Phase 6. Pilih WhatsApp atau tautan eksternal untuk produk yang diterbitkan.
+          </p>
 
           <label className="flex items-center gap-3 text-sm">
             <input className="size-4 accent-primary" type="checkbox" {...form.register("open_in_new_tab")} />

@@ -8,8 +8,7 @@ export const metadata: Metadata = { title: "Syarat dan Ketentuan", description: 
 const sections = [
   ["Penggunaan storefront", "Anda dapat menjelajah katalog tanpa akun pelanggan. Gunakan storefront secara wajar dan jangan mencoba mengganggu layanan, mengakses area internal, atau menyalahgunakan informasi produk."],
   ["Informasi produk", "Harga, stok, deskripsi, dan tujuan tombol beli mengikuti data aktif yang dikelola toko. Ketersediaan dapat berubah dan akan diperiksa kembali pada tahap transaksi yang relevan."],
-  ["Jalur pembelian", "Tombol beli dapat membuka WhatsApp, tautan eksternal, atau keranjang untuk pembayaran. Ketentuan tambahan dari penyedia pihak ketiga dapat berlaku ketika Anda melanjutkan ke layanan mereka."],
-  ["Keranjang", "Keranjang hanya menerima produk aktif yang dikonfigurasi untuk pembayaran Midtrans. Menambahkan produk ke keranjang belum membentuk pesanan dan belum menjamin reservasi stok."],
+  ["Jalur pembelian", "Pada tahap operasional ini, tombol beli hanya dapat membuka WhatsApp atau tautan eksternal HTTPS. Ketentuan tambahan dari penyedia pihak ketiga berlaku ketika Anda melanjutkan ke layanan mereka."],
   ["Perubahan layanan", "Fitur, isi katalog, dan dokumen ini dapat diperbarui agar tetap selaras dengan operasional toko dan ketentuan yang berlaku."],
 ] as const;
 

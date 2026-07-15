@@ -14,10 +14,19 @@ describe("Supabase migrations", () => {
   it("menyimpan migration dengan urutan timestamp yang konsisten", () => {
     const migrations = readdirSync(migrationsDirectory).filter((entry) => entry.endsWith(".sql")).sort();
 
-    expect(migrations).toHaveLength(13);
+    expect(migrations).toHaveLength(14);
     expect(migrations[0]).toContain("extensions");
-    expect(migrations.at(-1)).toContain("realtime_catalog");
+    expect(migrations.at(-1)).toContain("operations");
     expect(new Set(migrations.map((entry) => entry.slice(0, 14))).size).toBe(migrations.length);
+  });
+
+  it("menambahkan kontrol operasional transaksional dan menunda Midtrans", () => {
+    const operations = readMigration("operations.sql");
+    expect(operations).toContain("create table public.order_status_history");
+    expect(operations).toContain("function public.update_order_status");
+    expect(operations).toContain("function public.save_store_settings");
+    expect(operations).toContain("insert into public.activity_logs");
+    expect(operations).toContain("products_phase_6_cta_only");
   });
 
   it("menyiarkan perubahan katalog tanpa mengekspos isi baris", () => {
