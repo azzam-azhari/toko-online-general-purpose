@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { DM_Serif_Display, Plus_Jakarta_Sans } from "next/font/google";
 
 import { ThemeProvider } from "@/providers/theme-provider";
+import { Toaster } from "sonner";
 
 import "./globals.css";
 
@@ -17,10 +18,7 @@ const dmSerifDisplay = DM_Serif_Display({
 });
 
 export const metadata: Metadata = {
-  title: {
-    default: "NusaMart",
-    template: "%s | NusaMart",
-  },
+  title: "NusaMart",
   description:
     "Produk pilihan untuk membuat belanja kebutuhan harian dan gaya hidup terasa lebih praktis.",
 };
@@ -37,6 +35,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           forcedTheme="light"
         >
           {children}
+          <Toaster closeButton position="top-right" richColors />
         </ThemeProvider>
       </body>
     </html>

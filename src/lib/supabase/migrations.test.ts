@@ -14,10 +14,33 @@ describe("Supabase migrations", () => {
   it("menyimpan migration dengan urutan timestamp yang konsisten", () => {
     const migrations = readdirSync(migrationsDirectory).filter((entry) => entry.endsWith(".sql")).sort();
 
-    expect(migrations).toHaveLength(11);
+    expect(migrations).toHaveLength(13);
     expect(migrations[0]).toContain("extensions");
-    expect(migrations.at(-1)).toContain("storage");
+    expect(migrations.at(-1)).toContain("realtime_catalog");
     expect(new Set(migrations.map((entry) => entry.slice(0, 14))).size).toBe(migrations.length);
+  });
+
+  it("menyiarkan perubahan katalog tanpa mengekspos isi baris", () => {
+    const realtime = readMigration("realtime_catalog.sql");
+
+    expect(realtime).toContain("realtime.send");
+    expect(realtime).toContain("'catalog_changed'");
+    expect(realtime).toContain("'catalog'");
+    expect(realtime).toContain("after insert or update or delete on public.products");
+    expect(realtime).toContain("after insert or update or delete on public.categories");
+    expect(realtime).not.toContain("to_jsonb(new)");
+    expect(realtime).not.toContain("to_jsonb(old)");
+  });
+
+  it("menyimpan mutasi katalog dan activity log dalam fungsi transaksional", () => {
+    const catalogFunctions = readMigration("catalog_functions.sql");
+
+    expect(catalogFunctions).toContain("function public.save_catalog_product");
+    expect(catalogFunctions).toContain("function public.save_catalog_category");
+    expect(catalogFunctions).toContain("insert into public.activity_logs");
+    expect(catalogFunctions).toContain("private.is_active_admin()");
+    expect(catalogFunctions).toContain("public_url text");
+    expect(catalogFunctions).toContain("url publik gambar wajib valid");
   });
 
   it("mengaktifkan dan memaksa RLS pada semua tabel aplikasi", () => {
@@ -54,4 +77,3 @@ describe("Supabase migrations", () => {
     expect(rls).not.toContain("activity_logs_admin_delete");
   });
 });
-

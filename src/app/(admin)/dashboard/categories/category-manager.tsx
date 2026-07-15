@@ -1,0 +1,152 @@
+"use client";
+
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Archive, FolderTree, Loader2, Pencil, Plus } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState, useTransition } from "react";
+import { type FieldPath, useForm, useWatch } from "react-hook-form";
+import { toast } from "sonner";
+
+import { archiveCategoryAction, saveCategoryAction } from "@/actions/categories.actions";
+import { EmptyState } from "@/components/common/empty-state";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { createSlug } from "@/lib/slug";
+import type { Category } from "@/types/catalog";
+import {
+  categoryFormSchema,
+  type CategoryFormInput,
+  type CategoryFormValues,
+} from "@/validations/category.schema";
+
+function CategoryFormDialog({ categories, category, open, onOpenChange }: {
+  categories: Category[];
+  category: Category | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
+  const router = useRouter();
+  const [pending, setPending] = useState(false);
+  const [slugManual, setSlugManual] = useState(Boolean(category));
+  const form = useForm<CategoryFormInput, unknown, CategoryFormValues>({
+    resolver: zodResolver(categoryFormSchema),
+    defaultValues: {
+      name: category?.name ?? "",
+      slug: category?.slug ?? "",
+      description: category?.description ?? "",
+      icon: category?.icon ?? "",
+      parent_id: category?.parent_id ?? "",
+      is_active: category?.is_active ?? true,
+      sort_order: category?.sort_order ?? 0,
+    },
+  });
+  const watchedName = useWatch({ control: form.control, name: "name" });
+  const watchedSlug = useWatch({ control: form.control, name: "slug" });
+
+  useEffect(() => {
+    if (!slugManual) form.setValue("slug", createSlug(String(watchedName ?? "")));
+  }, [form, slugManual, watchedName]);
+
+  async function submit(values: CategoryFormValues) {
+    setPending(true);
+    const result = await saveCategoryAction(category?.id ?? null, values);
+    setPending(false);
+    if (!result.ok) {
+      if (result.error.fieldErrors) {
+        for (const [key, messages] of Object.entries(result.error.fieldErrors)) {
+          form.setError(key as FieldPath<CategoryFormInput>, { message: messages[0] });
+        }
+      }
+      toast.error(result.error.message);
+      return;
+    }
+    toast.success(category ? "Kategori berhasil diperbarui." : "Kategori berhasil ditambahkan.");
+    onOpenChange(false);
+    if (!category) router.replace("/dashboard/categories");
+    router.refresh();
+  }
+
+  return (
+    <Dialog onOpenChange={onOpenChange} open={open}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{category ? "Edit Kategori" : "Tambah Kategori"}</DialogTitle>
+          <DialogDescription>Kategori membantu admin dan pembeli mengelompokkan produk.</DialogDescription>
+        </DialogHeader>
+        <form className="grid gap-4" id="category-form" onSubmit={form.handleSubmit(submit)}>
+          <div><Label htmlFor="category-name">Nama kategori</Label><Input id="category-name" placeholder="Contoh: Kebutuhan Harian" {...form.register("name")} />{form.formState.errors.name ? <p className="mt-1 text-sm text-destructive">{form.formState.errors.name.message}</p> : null}</div>
+          {category ? (
+            <div><Label htmlFor="category-slug">Slug</Label><Input id="category-slug" onChange={(event) => { setSlugManual(true); form.setValue("slug", createSlug(event.target.value), { shouldValidate: true }); }} value={String(watchedSlug ?? "")} />{form.formState.errors.slug ? <p className="mt-1 text-sm text-destructive">{form.formState.errors.slug.message}</p> : null}</div>
+          ) : <input type="hidden" {...form.register("slug")} />}
+          <div><Label htmlFor="category-description">Deskripsi</Label><Textarea className="min-h-24" id="category-description" {...form.register("description")} />{form.formState.errors.description ? <p className="mt-1 text-sm text-destructive">{form.formState.errors.description.message}</p> : null}</div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div><Label htmlFor="category-parent">Kategori induk</Label><Select id="category-parent" {...form.register("parent_id")}><option value="">Tanpa induk</option>{categories.filter((option) => option.id !== category?.id).map((option) => <option key={option.id} value={option.id}>{option.name}</option>)}</Select>{form.formState.errors.parent_id ? <p className="mt-1 text-sm text-destructive">{form.formState.errors.parent_id.message}</p> : null}</div>
+            <div><Label htmlFor="category-order">Urutan tampil</Label><Input id="category-order" min="0" step="1" type="number" {...form.register("sort_order")} />{form.formState.errors.sort_order ? <p className="mt-1 text-sm text-destructive">{form.formState.errors.sort_order.message}</p> : null}</div>
+          </div>
+          <div><Label htmlFor="category-icon">Nama ikon</Label><Input id="category-icon" placeholder="Opsional, contoh: shopping-bag" {...form.register("icon")} /></div>
+          <label className="flex items-center gap-3 rounded-lg border p-3 text-sm"><input className="size-4 accent-primary" type="checkbox" {...form.register("is_active")} /><span><strong className="block">Kategori aktif</strong><span className="text-xs text-muted-foreground">Kategori aktif siap digunakan pada katalog publik.</span></span></label>
+        </form>
+        <DialogFooter>
+          <Button disabled={pending} form="category-form" type="submit">{pending ? <Loader2 aria-hidden="true" className="animate-spin" /> : null}{category ? "Simpan Perubahan" : "Tambah Kategori"}</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function ArchiveCategoryButton({ category }: { category: Category }) {
+  const router = useRouter();
+  const [pending, startTransition] = useTransition();
+  return (
+    <AlertDialog>
+      <AlertDialogTrigger asChild><Button aria-label={`Arsipkan ${category.name}`} disabled={pending} size="icon" variant="ghost"><Archive aria-hidden="true" /></Button></AlertDialogTrigger>
+      <AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Arsipkan kategori?</AlertDialogTitle><AlertDialogDescription>“{category.name}” tidak lagi dapat dipilih untuk produk baru. Produk yang sudah terhubung tidak akan ikut terhapus.</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>Batal</AlertDialogCancel><AlertDialogAction onClick={() => startTransition(async () => { const result = await archiveCategoryAction(category.id); if (!result.ok) { toast.error(result.error.message); return; } toast.success("Kategori berhasil diarsipkan."); router.refresh(); })}>Arsipkan</AlertDialogAction></AlertDialogFooter></AlertDialogContent>
+    </AlertDialog>
+  );
+}
+
+export function CategoryManager({ categories }: { categories: Category[] }) {
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+  const parentNames = new Map(categories.map((category) => [category.id, category.name]));
+  const openCreate = () => { setEditingCategory(null); setDialogOpen(true); };
+  const openEdit = (category: Category) => { setEditingCategory(category); setDialogOpen(true); };
+
+  return (
+    <>
+      <div className="flex justify-end"><Button onClick={openCreate} type="button"><Plus aria-hidden="true" /> Tambah Kategori</Button></div>
+      {categories.length === 0 ? <EmptyState action={<Button onClick={openCreate} type="button"><Plus aria-hidden="true" /> Tambah Kategori</Button>} description="Buat kategori pertama untuk mengelompokkan produk." icon={FolderTree} title="Belum ada kategori" /> : (
+        <div className="grid gap-3">
+          {categories.map((category) => (
+            <Card key={category.id}><CardContent className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between"><div className="flex min-w-0 items-start gap-3"><span className="grid size-10 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary"><FolderTree aria-hidden="true" className="size-5" /></span><div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><h2 className="font-semibold">{category.name}</h2><Badge variant={category.is_active ? "secondary" : "outline"}>{category.is_active ? "Aktif" : "Nonaktif"}</Badge></div><p className="mt-1 text-xs text-muted-foreground">/{category.slug} · Urutan {category.sort_order}{category.parent_id ? ` · Induk: ${parentNames.get(category.parent_id) ?? "—"}` : ""}</p>{category.description ? <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">{category.description}</p> : null}</div></div><div className="flex justify-end gap-1"><Button aria-label={`Edit ${category.name}`} onClick={() => openEdit(category)} size="icon" type="button" variant="ghost"><Pencil aria-hidden="true" /></Button><ArchiveCategoryButton category={category} /></div></CardContent></Card>
+          ))}
+        </div>
+      )}
+      <CategoryFormDialog categories={categories} category={editingCategory} key={editingCategory?.id ?? "new"} onOpenChange={setDialogOpen} open={dialogOpen} />
+    </>
+  );
+}

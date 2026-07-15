@@ -43,8 +43,9 @@ SVG perlu penanganan ekstra karena dapat membawa konten aktif. Batasi SVG hanya 
 4. Server memvalidasi file.
 5. Server membuat path acak.
 6. File diunggah.
-7. Record database dibuat.
-8. Bila transaksi database gagal, file orphan dijadwalkan untuk dibersihkan.
+7. URL publik/signed yang sesuai diambil dari bucket dan divalidasi.
+8. `storage_path` dan URL file disimpan pada record gambar dalam transaksi penyimpanan produk.
+9. Bila URL tidak dapat diperoleh atau transaksi database gagal, file yang baru diunggah dibersihkan dan record tidak dibuat.
 
 ## 5. Delete Flow
 

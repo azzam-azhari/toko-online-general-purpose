@@ -12,6 +12,7 @@ test-results/
 
 # Local environment files
 .env
+.env.local
 .env.*
 !env.example
 
@@ -30,3 +31,6 @@ Thumbs.db
 # TypeScript
 *.tsbuildinfo
 next-env.d.ts
+
+# Dokumen PRD dan Arsitektur Sistem
+docs/

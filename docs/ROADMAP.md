@@ -27,38 +27,40 @@ Keputusan final: [`PHASE_0_DISCOVERY.md`](./PHASE_0_DISCOVERY.md).
 - [x] Route protection.
 - [x] Role tunggal admin.
 
-## Fase 3 — Dashboard Katalog
+## Fase 3 — Dashboard Katalog ✅
 
-- Dashboard overview dasar.
-- CRUD produk.
-- CRUD kategori.
-- Upload gambar.
-- Harga jual dan harga pembanding/coret.
-- CTA configuration.
-- Form produk sederhana dengan draft, pratinjau, dan terbitkan.
-- Activity log.
+- [x] Dashboard overview dasar.
+- [x] CRUD produk.
+- [x] CRUD kategori.
+- [x] Upload gambar ke Supabase Storage beserta penyimpanan path dan URL publik.
+- [x] Harga jual dan harga pembanding/coret.
+- [x] CTA configuration.
+- [x] Form produk sederhana dengan draft, pratinjau, dan terbitkan.
+- [x] Activity log.
 
-## Fase 4 — Storefront
+## Fase 4 — Storefront ✅
 
-- Landing page.
-- Katalog.
-- Detail produk.
-- Klik kartu menuju detail dan tombol **Beli** langsung menuju CTA.
-- Share detail produk melalui salin link, WhatsApp, Facebook, dan Instagram.
-- Filter/search.
-- Cart.
-- Halaman informasi.
-- SEO dasar.
+- [x] Landing page.
+- [x] Katalog.
+- [x] Detail produk.
+- [x] Klik kartu menuju detail dan tombol **Beli** langsung menuju CTA.
+- [x] Share detail produk melalui salin link, WhatsApp, Facebook, dan Instagram.
+- [x] Filter/search.
+- [x] Cart.
+- [x] Halaman informasi.
+- [x] SEO dasar.
 
-## Fase 5 — Checkout
+## Fase 5 — Refactor dan Stabilisasi Storefront ✅
 
-- Custom URL.
-- WhatsApp.
-- Midtrans Snap.
-- Orders.
-- Payment transaction.
-- Webhook.
-- Status order.
+- [x] Rapikan struktur dan konsistensi penamaan kode keranjang.
+- [x] Pisahkan tipe, validasi, dan normalisasi data keranjang dari React provider.
+- [x] Kurangi duplikasi tampilan keranjang melalui komponen internal yang terfokus.
+- [x] Pertahankan alur CTA Custom URL dan WhatsApp yang sudah berjalan.
+- [x] Pertahankan layout, styling, tipografi, spacing, dan responsivitas storefront.
+- [x] Tambahkan unit test untuk aturan dan data tersimpan keranjang.
+- [x] Pastikan type-check, lint, test, dan production build berhasil.
+
+Integrasi Midtrans beserta order dan pembayaran tetap dijadwalkan pada Fase 8 agar dikerjakan pada tahap akhir setelah fitur operasional dan quality selesai.
 
 ## Fase 6 — Operasional
 
@@ -77,11 +79,16 @@ Keputusan final: [`PHASE_0_DISCOVERY.md`](./PHASE_0_DISCOVERY.md).
 - Security hardening.
 - UAT staging.
 
-## Fase 8 — Production
+## Fase 8 — Checkout dan Production
 
+- Midtrans Snap.
+- Orders dan order items.
+- Payment transaction.
+- Webhook pembayaran yang terverifikasi dan idempotent.
+- Status order.
 - Production migration.
 - Domain.
-- Midtrans production.
+- Aktivasi Midtrans production setelah pengujian sandbox dan UAT selesai.
 - Monitoring.
 - Backup.
 - Runbook insiden.

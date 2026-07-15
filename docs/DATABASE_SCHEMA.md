@@ -89,6 +89,7 @@ check (
 - `id uuid`
 - `product_id uuid`
 - `storage_path text`
+- `public_url text nullable` (wajib diisi oleh alur upload baru setelah URL bucket berhasil diperoleh; nullable untuk kompatibilitas data lama)
 - `alt_text text`
 - `sort_order integer`
 - `is_primary boolean`
@@ -312,5 +313,5 @@ Pisahkan migration menjadi:
 009_indexes.sql
 010_rls.sql
 011_storage.sql
-012_seed.sql
+012_catalog_functions.sql
 ```
