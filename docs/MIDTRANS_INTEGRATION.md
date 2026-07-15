@@ -1,5 +1,7 @@
 # Integrasi Midtrans
 
+> Status Fase 8 saat ini: **belum diaktifkan**. Kanal production dibatasi ke WhatsApp dan tautan eksternal. Dokumen ini tetap menjadi rancangan aktivasi lanjutan setelah seluruh pengujian sandbox dan UAT memiliki persetujuan tertulis.
+
 ## 1. Mode
 
 Gunakan environment terpisah:

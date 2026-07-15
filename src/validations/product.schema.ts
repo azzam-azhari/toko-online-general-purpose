@@ -1,6 +1,5 @@
 import { z } from "zod";
 
-import { PRODUCT_STATUSES } from "@/types/catalog";
 import { databaseUuidSchema } from "@/validations/database.schema";
 
 const optionalText = (max: number) =>
@@ -33,7 +32,7 @@ export const productFormSchema = z
     price: z.coerce.number().int("Harga harus berupa angka bulat.").min(0, "Harga tidak boleh negatif."),
     compare_at_price: optionalInteger,
     stock: z.coerce.number().int("Stok harus berupa angka bulat.").min(0, "Stok tidak boleh negatif."),
-    status: z.enum(PRODUCT_STATUSES),
+    status: z.enum(["draft", "active", "inactive"]),
     is_featured: z.boolean().default(false),
     sort_order: z.coerce.number().int().min(0).max(999999).default(0),
     seo_title: optionalText(70),

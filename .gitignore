@@ -3,6 +3,7 @@ node_modules/
 
 # Next.js
 .next/
+.next-dev/
 out/
 
 # Test output
@@ -33,4 +34,8 @@ Thumbs.db
 next-env.d.ts
 
 # Dokumen PRD dan Arsitektur Sistem
-docs/
+docs/*
+!docs/PHASE_7_QUALITY.md
+!docs/PHASE_8_PRODUCTION.md
+!docs/INCIDENT_RUNBOOK.md
+!docs/PRODUCTION_MIGRATION_BASELINE.md

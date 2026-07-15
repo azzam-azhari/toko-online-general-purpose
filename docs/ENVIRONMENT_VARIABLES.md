@@ -3,8 +3,8 @@
 ## 1. Contoh `env.example`
 
 ```env
-NEXT_PUBLIC_APP_URL=http://localhost:3000
-NEXT_PUBLIC_APP_NAME=General Store
+NEXT_PUBLIC_APP_URL=https://toko-online-general-purpose.vercel.app/
+NEXT_PUBLIC_APP_NAME=NusaMart
 
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
@@ -68,3 +68,16 @@ Rotasi segera bila:
 - key tercetak di log,
 - akses anggota tim dicabut,
 - ada aktivitas mencurigakan.
+
+## 6. GitHub Actions Production
+
+Secret repository/environment yang diperlukan:
+
+- `SUPABASE_PRODUCTION_DB_URL`
+- `NEXT_PUBLIC_SUPABASE_PRODUCTION_URL`
+- `NEXT_PUBLIC_SUPABASE_PRODUCTION_PUBLISHABLE_KEY`
+- `SUPABASE_PRODUCTION_SERVICE_ROLE_KEY`
+- `VERCEL_PRODUCTION_DEPLOY_HOOK_URL`
+- `BACKUP_ENCRYPTION_PASSPHRASE`
+
+Batasi approval pada GitHub Environment `production`. Midtrans production key tidak ditambahkan sebelum sandbox dan UAT disetujui.

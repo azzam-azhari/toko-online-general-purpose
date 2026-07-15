@@ -2,7 +2,6 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
-  Archive,
   Baby,
   BookOpen,
   BriefcaseBusiness,
@@ -22,6 +21,7 @@ import {
   ShoppingBag,
   Smartphone,
   Sparkles,
+  Trash2,
   Utensils,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -29,7 +29,7 @@ import { useEffect, useState, useTransition } from "react";
 import { type FieldPath, useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 
-import { archiveCategoryAction, saveCategoryAction } from "@/actions/categories.actions";
+import { deleteCategoryAction, saveCategoryAction } from "@/actions/categories.actions";
 import { EmptyState } from "@/components/common/empty-state";
 import {
   AlertDialog,
@@ -206,13 +206,45 @@ function CategoryFormDialog({ categories, category, open, onOpenChange }: {
   );
 }
 
-function ArchiveCategoryButton({ category }: { category: Category }) {
+function DeleteCategoryButton({ category }: { category: Category }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
+
+  function deleteCategory() {
+    startTransition(async () => {
+      const result = await deleteCategoryAction(category.id);
+      if (!result.ok) {
+        toast.error(result.error.message);
+        return;
+      }
+      if (result.data.warning) toast.warning(result.data.warning);
+      else toast.success("Kategori berhasil dihapus permanen.");
+      router.refresh();
+    });
+  }
+
   return (
     <AlertDialog>
-      <AlertDialogTrigger asChild><Button aria-label={`Arsipkan ${category.name}`} disabled={pending} size="icon" variant="ghost"><Archive aria-hidden="true" /></Button></AlertDialogTrigger>
-      <AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Arsipkan kategori?</AlertDialogTitle><AlertDialogDescription>“{category.name}” tidak lagi dapat dipilih untuk produk baru. Produk yang sudah terhubung tidak akan ikut terhapus.</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>Batal</AlertDialogCancel><AlertDialogAction onClick={() => startTransition(async () => { const result = await archiveCategoryAction(category.id); if (!result.ok) { toast.error(result.error.message); return; } toast.success("Kategori berhasil diarsipkan."); router.refresh(); })}>Arsipkan</AlertDialogAction></AlertDialogFooter></AlertDialogContent>
+      <AlertDialogTrigger asChild>
+        <Button aria-label={`Hapus permanen ${category.name}`} disabled={pending} size="icon" variant="ghost">
+          <Trash2 aria-hidden="true" />
+        </Button>
+      </AlertDialogTrigger>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Hapus kategori secara permanen?</AlertDialogTitle>
+          <AlertDialogDescription>
+            “{category.name}” akan dihapus permanen dan tidak dapat dikembalikan. Hubungan kategori pada
+            produk akan dilepas, tetapi produknya tidak ikut dihapus. Subkategori akan menjadi kategori utama.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Batal</AlertDialogCancel>
+          <AlertDialogAction className="bg-destructive text-white hover:bg-destructive/90" onClick={deleteCategory}>
+            Hapus Permanen
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
     </AlertDialog>
   );
 }
@@ -230,7 +262,7 @@ export function CategoryManager({ categories }: { categories: Category[] }) {
       {categories.length === 0 ? <EmptyState action={<Button onClick={openCreate} type="button"><Plus aria-hidden="true" /> Tambah Kategori</Button>} description="Buat kategori pertama untuk mengelompokkan produk." icon={FolderTree} title="Belum ada kategori" /> : (
         <div className="grid gap-3">
           {categories.map((category) => (
-            <Card key={category.id}><CardContent className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between"><div className="flex min-w-0 items-start gap-3"><span className="grid size-10 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary"><CategoryIcon className="size-5" value={category.icon} /></span><div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><h2 className="font-semibold">{category.name}</h2><Badge variant={category.is_active ? "secondary" : "outline"}>{category.is_active ? "Aktif" : "Nonaktif"}</Badge></div><p className="mt-1 text-xs text-muted-foreground">/{category.slug} · Urutan {category.sort_order}{category.parent_id ? ` · Induk: ${parentNames.get(category.parent_id) ?? "—"}` : ""}</p>{category.description ? <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">{category.description}</p> : null}</div></div><div className="flex justify-end gap-1"><Button aria-label={`Edit ${category.name}`} onClick={() => openEdit(category)} size="icon" type="button" variant="ghost"><Pencil aria-hidden="true" /></Button><ArchiveCategoryButton category={category} /></div></CardContent></Card>
+            <Card key={category.id}><CardContent className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between"><div className="flex min-w-0 items-start gap-3"><span className="grid size-10 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary"><CategoryIcon className="size-5" value={category.icon} /></span><div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><h2 className="font-semibold">{category.name}</h2><Badge variant={category.is_active ? "secondary" : "outline"}>{category.is_active ? "Aktif" : "Nonaktif"}</Badge></div><p className="mt-1 text-xs text-muted-foreground">/{category.slug} · Urutan {category.sort_order}{category.parent_id ? ` · Induk: ${parentNames.get(category.parent_id) ?? "—"}` : ""}</p>{category.description ? <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">{category.description}</p> : null}</div></div><div className="flex justify-end gap-1"><Button aria-label={`Edit ${category.name}`} onClick={() => openEdit(category)} size="icon" type="button" variant="ghost"><Pencil aria-hidden="true" /></Button><DeleteCategoryButton category={category} /></div></CardContent></Card>
           ))}
         </div>
       )}

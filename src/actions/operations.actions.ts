@@ -8,6 +8,8 @@ import { createClient } from "@/lib/supabase/server";
 import type { ActionResult } from "@/types/action-result";
 import {
   bannerSchema,
+  externalOrderSchema,
+  externalPaymentUpdateSchema,
   faqSchema,
   orderStatusUpdateSchema,
   storeSettingsSchema,
@@ -67,7 +69,7 @@ function fieldErrors(error: { flatten: () => { fieldErrors: Record<string, strin
 function mapDatabaseError(error: { code?: string; message: string }, fallback: string) {
   if (error.code === "42501") return { code: "FORBIDDEN", message: "Anda tidak memiliki izin untuk melakukan tindakan ini." };
   if (error.code === "P0002") return { code: "NOT_FOUND", message: error.message };
-  if (error.code === "23514" || error.code === "22023") return { code: "VALIDATION_ERROR", message: error.message };
+  if (error.code === "23514" || error.code === "22023" || error.code === "22P02") return { code: "VALIDATION_ERROR", message: error.message };
   return { code: "INTERNAL_ERROR", message: fallback };
 }
 
@@ -162,7 +164,7 @@ async function cleanupAsset(path?: string) {
 }
 
 function revalidateOperations() {
-  revalidatePath("/");
+  revalidatePath("/", "layout");
   revalidatePath("/faq");
   revalidatePath("/dashboard");
   revalidatePath("/dashboard/content");
@@ -189,6 +191,53 @@ export async function updateOrderStatusAction(input: unknown): Promise<ActionRes
   revalidatePath("/dashboard");
   revalidatePath("/dashboard/orders");
   revalidatePath(`/dashboard/orders/${parsed.data.order_id}`);
+  return { ok: true, data: { id: parsed.data.order_id } };
+}
+
+export async function createExternalOrderAction(input: unknown): Promise<ActionResult<{ id: string }>> {
+  if (!(await getAdminSession())) return { ok: false, error: { code: "UNAUTHORIZED", message: "Sesi admin berakhir. Silakan masuk kembali." } };
+  const parsed = externalOrderSchema.safeParse(input);
+  if (!parsed.success) return {
+    ok: false,
+    error: {
+      code: "VALIDATION_ERROR",
+      message: "Periksa pelanggan, kanal, dan item pesanan.",
+      fieldErrors: fieldErrors(parsed.error),
+    },
+  };
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("create_external_order", { p_payload: parsed.data });
+  if (error) return { ok: false, error: mapDatabaseError(error, "Pesanan eksternal belum dapat dicatat.") };
+  const id = String(data);
+  revalidatePath("/dashboard");
+  revalidatePath("/dashboard/orders");
+  revalidatePath("/dashboard/inventory");
+  return { ok: true, data: { id } };
+}
+
+export async function updateExternalPaymentStatusAction(input: unknown): Promise<ActionResult<{ id: string }>> {
+  if (!(await getAdminSession())) return { ok: false, error: { code: "UNAUTHORIZED", message: "Sesi admin berakhir. Silakan masuk kembali." } };
+  const parsed = externalPaymentUpdateSchema.safeParse(input);
+  if (!parsed.success) return {
+    ok: false,
+    error: {
+      code: "VALIDATION_ERROR",
+      message: "Periksa status, referensi, dan catatan pembayaran.",
+      fieldErrors: fieldErrors(parsed.error),
+    },
+  };
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("update_external_payment_status", {
+    p_order_id: parsed.data.order_id,
+    p_status: parsed.data.status,
+    p_reference: parsed.data.reference ?? null,
+    p_note: parsed.data.note ?? null,
+  });
+  if (error) return { ok: false, error: mapDatabaseError(error, "Status pembayaran belum dapat diperbarui.") };
+  revalidatePath("/dashboard");
+  revalidatePath("/dashboard/orders");
+  revalidatePath(`/dashboard/orders/${parsed.data.order_id}`);
+  revalidatePath("/dashboard/inventory");
   return { ok: true, data: { id: parsed.data.order_id } };
 }
 

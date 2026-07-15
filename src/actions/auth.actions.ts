@@ -1,9 +1,11 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { headers } from "next/headers";
 
 import { serverEnv } from "@/configs/env/server";
 import { createClient } from "@/lib/supabase/server";
+import { getRequestIp, takeRateLimit } from "@/lib/security/rate-limit";
 import type { AdminProfile, AuthActionState } from "@/types/auth";
 import {
   forgotPasswordSchema,
@@ -31,6 +33,15 @@ export async function loginAction(
   });
 
   if (!parsed.success) return validationError(parsed.error);
+
+  const requestIp = getRequestIp(await headers());
+  const loginLimit = takeRateLimit({ key: `login:${requestIp}`, limit: 10, windowMs: 5 * 60_000 });
+  if (!loginLimit.allowed) {
+    return {
+      status: "error",
+      message: `Terlalu banyak percobaan masuk. Coba lagi dalam ${loginLimit.retryAfterSeconds} detik.`,
+    };
+  }
 
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signInWithPassword({
@@ -65,6 +76,15 @@ export async function forgotPasswordAction(
   const parsed = forgotPasswordSchema.safeParse({ email: formData.get("email") });
 
   if (!parsed.success) return validationError(parsed.error);
+
+  const requestIp = getRequestIp(await headers());
+  const resetLimit = takeRateLimit({ key: `password-reset:${requestIp}`, limit: 3, windowMs: 15 * 60_000 });
+  if (!resetLimit.allowed) {
+    return {
+      status: "error",
+      message: `Terlalu banyak permintaan pemulihan. Coba lagi dalam ${resetLimit.retryAfterSeconds} detik.`,
+    };
+  }
 
   await (await createClient()).auth.resetPasswordForEmail(parsed.data.email, {
     redirectTo: `${serverEnv.appUrl}/auth/confirm?next=/reset-password`,
@@ -112,4 +132,3 @@ export async function logoutAction() {
   await supabase.auth.signOut();
   redirect("/login");
 }
-

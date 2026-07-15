@@ -19,6 +19,12 @@ const validProduct = {
 };
 
 describe("productFormSchema", () => {
+  it("menolak status arsip karena penghapusan katalog sekarang permanen", () => {
+    const result = productFormSchema.safeParse({ ...validProduct, status: "archived" });
+
+    expect(result.success).toBe(false);
+  });
+
   it("menerima harga pembanding yang lebih tinggi", () => {
     expect(productFormSchema.safeParse(validProduct).success).toBe(true);
   });

@@ -99,3 +99,11 @@ Monitor:
 - database error.
 - storage error.
 - auth failure.
+
+## 10. Otomasi Production
+
+- `production-release.yml`: release manual dengan UAT approval, backup, migration dry-run, migration production, deploy hook, dan smoke test.
+- `production-monitor.yml`: health/readiness setiap 15 menit dan issue insiden otomatis.
+- `production-backup.yml`: backup schema, roles, dan data setiap hari, dienkripsi sebelum upload, dengan retensi artifact 14 hari.
+
+Jangan menjalankan release production sebelum checklist UAT pada `PHASE_7_QUALITY.md` memiliki bukti dan persetujuan pemilik produk. Ikuti `INCIDENT_RUNBOOK.md` bila smoke test atau monitoring gagal.

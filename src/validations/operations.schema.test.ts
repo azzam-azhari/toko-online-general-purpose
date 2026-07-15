@@ -1,6 +1,14 @@
 import { describe, expect, it } from "vitest";
 
-import { bannerSchema, orderStatusUpdateSchema, storeSettingsSchema, testimonialSchema } from "./operations.schema";
+import {
+  bannerSchema,
+  externalOrderSchema,
+  externalPaymentUpdateSchema,
+  orderStatusUpdateSchema,
+  publicOrderLookupSchema,
+  storeSettingsSchema,
+  testimonialSchema,
+} from "./operations.schema";
 
 describe("validasi operasional", () => {
   it("mewajibkan persetujuan untuk testimoni aktif", () => {
@@ -21,5 +29,35 @@ describe("validasi operasional", () => {
     const parsed = storeSettingsSchema.safeParse({ store_name: "NusaMart", contact_email: "", contact_phone: "", whatsapp_number: "081234567890", address: "", business_hours: "", facebook_url: "", instagram_url: "", currency: "IDR", timezone: "Asia/Jakarta", flat_shipping_fee: 0, low_stock_threshold: 5, seo_title: "", seo_description: "", tagline: "", description: "" });
     expect(parsed.success).toBe(true);
     expect(storeSettingsSchema.safeParse({ ...(parsed.success ? parsed.data : {}), currency: "USD" }).success).toBe(false);
+  });
+
+  it("menerima pesanan eksternal yang idempoten dan menolak Midtrans", () => {
+    const input = {
+      idempotency_key: "00000000-0000-0000-0000-000000000301",
+      sales_channel: "whatsapp",
+      customer_name: "Ayu",
+      customer_email: "ayu@example.com",
+      customer_phone: "081234567890",
+      source_reference: "Chat 123",
+      notes: "Diverifikasi admin.",
+      items: [{ product_id: "00000000-0000-0000-0000-000000000401", quantity: 2 }],
+    };
+
+    expect(externalOrderSchema.safeParse(input).success).toBe(true);
+    expect(externalOrderSchema.safeParse({ ...input, sales_channel: "midtrans" }).success).toBe(false);
+    expect(externalOrderSchema.safeParse({ ...input, items: [...input.items, ...input.items] }).success).toBe(false);
+  });
+
+  it("membatasi perubahan pembayaran eksternal dan lookup publik", () => {
+    expect(externalPaymentUpdateSchema.safeParse({
+      order_id: "00000000-0000-0000-0000-000000000301",
+      status: "paid",
+      reference: "TRANSFER-123",
+    }).success).toBe(true);
+    expect(externalPaymentUpdateSchema.safeParse({
+      order_id: "00000000-0000-0000-0000-000000000301",
+      status: "unpaid",
+    }).success).toBe(false);
+    expect(publicOrderLookupSchema.safeParse({ order_number: "ord-20260715-abc12345", contact: "081234567890" }).success).toBe(true);
   });
 });

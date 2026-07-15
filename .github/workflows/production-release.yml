@@ -1,0 +1,106 @@
+name: Production Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      uat_approved:
+        description: Staging UAT has written product-owner approval
+        required: true
+        type: boolean
+        default: false
+      confirmation:
+        description: Type RELEASE-PRODUCTION
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-release
+  cancel-in-progress: false
+
+env:
+  NEXT_PUBLIC_APP_URL: https://toko-online-general-purpose.vercel.app/
+  NEXT_PUBLIC_APP_NAME: NusaMart
+  NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_PRODUCTION_URL }}
+  NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PRODUCTION_PUBLISHABLE_KEY }}
+  SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_PRODUCTION_SERVICE_ROLE_KEY }}
+  SUPABASE_DB_URL: ${{ secrets.SUPABASE_PRODUCTION_DB_URL }}
+  VERCEL_DEPLOY_HOOK_URL: ${{ secrets.VERCEL_PRODUCTION_DEPLOY_HOOK_URL }}
+  BACKUP_ENCRYPTION_PASSPHRASE: ${{ secrets.BACKUP_ENCRYPTION_PASSPHRASE }}
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    environment: production
+    steps:
+      - name: Enforce release gate
+        run: |
+          test "${{ inputs.uat_approved }}" = "true"
+          test "${{ inputs.confirmation }}" = "RELEASE-PRODUCTION"
+          test -n "$SUPABASE_DB_URL"
+          test -n "$VERCEL_DEPLOY_HOOK_URL"
+          test -n "$BACKUP_ENCRYPTION_PASSPHRASE"
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Quality gate
+        run: npm run typecheck && npm run lint && npm test && npm run build
+
+      - name: Verify production migration baseline
+        run: |
+          npx supabase migration list --db-url "$SUPABASE_DB_URL" --output json > migration-list.json
+          node -e "const fs=require('fs');const rows=JSON.parse(fs.readFileSync('migration-list.json','utf8')).migrations;const required=Array.from({length:16},(_,i)=>'202607150100'+String(i+1).padStart(2,'0'));const remote=new Set(rows.map((row)=>String(row.remote||'')));const missing=required.filter((version)=>!remote.has(version));if(missing.length){console.error('Production migration history must be reconciled first:',missing.join(','));process.exit(1)}"
+
+      - name: Back up production before migration
+        run: |
+          mkdir -p pre-migration-backup
+          npx supabase db dump --db-url "$SUPABASE_DB_URL" --file pre-migration-backup/schema.sql
+          npx supabase db dump --db-url "$SUPABASE_DB_URL" --role-only --file pre-migration-backup/roles.sql
+          npx supabase db dump --db-url "$SUPABASE_DB_URL" --data-only --use-copy --file pre-migration-backup/data.sql
+          tar -czf "pre-migration-backup-${GITHUB_RUN_ID}.tar.gz" pre-migration-backup
+          openssl enc -aes-256-cbc -salt -pbkdf2 \
+            -in "pre-migration-backup-${GITHUB_RUN_ID}.tar.gz" \
+            -out "pre-migration-backup-${GITHUB_RUN_ID}.tar.gz.enc" \
+            -pass env:BACKUP_ENCRYPTION_PASSPHRASE
+          rm -rf pre-migration-backup "pre-migration-backup-${GITHUB_RUN_ID}.tar.gz"
+
+      - name: Upload pre-migration backup
+        uses: actions/upload-artifact@v4
+        with:
+          name: pre-migration-backup-${{ github.run_id }}
+          path: pre-migration-backup-${{ github.run_id }}.tar.gz.enc
+          retention-days: 30
+          if-no-files-found: error
+
+      - name: Preview production migrations
+        run: npx supabase db push --db-url "$SUPABASE_DB_URL" --dry-run
+
+      - name: Apply production migrations
+        run: npx supabase db push --db-url "$SUPABASE_DB_URL" --yes
+
+      - name: Trigger Vercel production deployment
+        run: curl --fail --silent --show-error --max-time 30 -X POST "$VERCEL_DEPLOY_HOOK_URL"
+
+      - name: Wait for production and run smoke checks
+        run: |
+          for attempt in {1..20}; do
+            if curl --fail --silent --max-time 20 https://toko-online-general-purpose.vercel.app/api/health >/dev/null && \
+               curl --fail --silent --max-time 20 https://toko-online-general-purpose.vercel.app/api/health/ready >/dev/null; then
+              exit 0
+            fi
+            sleep 15
+          done
+          exit 1

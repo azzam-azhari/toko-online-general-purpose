@@ -6,6 +6,7 @@ import { z } from "zod";
 
 import { getAdminSession } from "@/lib/auth/get-admin-session";
 import { broadcastCatalogChange } from "@/lib/supabase/catalog-realtime";
+import { removeCatalogEntityFiles } from "@/lib/supabase/catalog-storage";
 import { createClient } from "@/lib/supabase/server";
 import { createShortDescription } from "@/lib/text";
 import type { ActionError, ActionResult } from "@/types/action-result";
@@ -27,6 +28,16 @@ type SaveProductResult = {
   status: ProductStatus;
   warning?: string;
 };
+
+type DeleteProductResult = {
+  id: string;
+  warning?: string;
+};
+
+const deleteCatalogResultSchema = z.object({
+  id: databaseUuidSchema,
+  storage_paths: z.array(z.string()).default([]),
+});
 
 type UploadedImage = {
   storage_path: string;
@@ -191,6 +202,13 @@ async function uploadImages(
 }
 
 function mapDatabaseError(error: { code?: string; message: string }): ActionError {
+  if (error.message.includes("delete_catalog_product")) {
+    return {
+      code: "CONFIGURATION_ERROR",
+      message: "Migration penghapusan permanen katalog belum diterapkan pada database Supabase.",
+    };
+  }
+
   if (error.code === "PGRST202" || error.message.includes("save_catalog_product")) {
     return {
       code: "CONFIGURATION_ERROR",
@@ -495,49 +513,6 @@ async function setProductStatusWithoutRpc(
   return { ok: true, data: { id: productId } };
 }
 
-async function archiveProductWithoutRpc(
-  supabase: SupabaseClient,
-  productId: string,
-  actorId: string,
-): Promise<ActionResult<{ id: string }>> {
-  const { data: before, error: readError } = await supabase
-    .from("products")
-    .select(PRODUCT_SELECT)
-    .eq("id", productId)
-    .is("deleted_at", null)
-    .maybeSingle();
-  if (readError) return { ok: false, error: mapDatabaseError(readError) };
-  if (!before) return { ok: false, error: { code: "NOT_FOUND", message: "Produk tidak ditemukan." } };
-
-  const archivedAt = new Date().toISOString();
-  const { data: after, error: archiveError } = await supabase
-    .from("products")
-    .update({ status: "archived", deleted_at: archivedAt, updated_by: actorId })
-    .eq("id", productId)
-    .is("deleted_at", null)
-    .select(PRODUCT_SELECT)
-    .single();
-  if (archiveError) return { ok: false, error: mapDatabaseError(archiveError) };
-
-  const { error: logError } = await supabase.from("activity_logs").insert({
-    actor_id: actorId,
-    action: "product.archived",
-    entity_type: "product",
-    entity_id: productId,
-    before_data: before,
-    after_data: after,
-  });
-  if (logError) {
-    await supabase
-      .from("products")
-      .update({ status: before.status, deleted_at: before.deleted_at, updated_by: before.updated_by })
-      .eq("id", productId);
-    return { ok: false, error: { code: "INTERNAL_ERROR", message: "Produk tidak diarsipkan karena activity log gagal dibuat." } };
-  }
-
-  return { ok: true, data: { id: productId } };
-}
-
 export async function saveProductAction(
   productId: string | null,
   formData: FormData,
@@ -701,9 +676,8 @@ export async function setProductStatusAction(
   return { ok: true, data: { id: parsed.data.id } };
 }
 
-export async function archiveProductAction(productId: string): Promise<ActionResult<{ id: string }>> {
-  const session = await getAdminSession();
-  if (!session) {
+export async function deleteProductAction(productId: string): Promise<ActionResult<DeleteProductResult>> {
+  if (!(await getAdminSession())) {
     return { ok: false, error: { code: "UNAUTHORIZED", message: "Sesi admin berakhir." } };
   }
 
@@ -713,19 +687,26 @@ export async function archiveProductAction(productId: string): Promise<ActionRes
   }
 
   const supabase = await createClient();
-  const { error } = await supabase.rpc("archive_catalog_product", { p_product_id: parsedId.data });
-  if (error && isMissingCatalogRpc(error)) {
-    const fallback = await archiveProductWithoutRpc(
-      supabase,
-      parsedId.data,
-      session.profile.id,
-    );
-    if (!fallback.ok) return fallback;
-  } else if (error) return { ok: false, error: mapDatabaseError(error) };
+  const { data, error } = await supabase.rpc("delete_catalog_product", { p_product_id: parsedId.data });
+  if (error) return { ok: false, error: mapDatabaseError(error) };
+
+  const parsedResult = deleteCatalogResultSchema.safeParse(data);
+  if (!parsedResult.success || parsedResult.data.id !== parsedId.data) {
+    return {
+      ok: false,
+      error: { code: "INTERNAL_ERROR", message: "Respons penghapusan produk dari database tidak valid." },
+    };
+  }
+
+  const cleanup = await removeCatalogEntityFiles(
+    "product-images",
+    parsedId.data,
+    parsedResult.data.storage_paths,
+  );
 
   revalidatePath("/dashboard");
   revalidatePath("/dashboard/products");
   revalidateTag("products", "max");
-  await broadcastCatalogChange({ entity: "product", operation: "archived", id: parsedId.data });
-  return { ok: true, data: { id: parsedId.data } };
+  await broadcastCatalogChange({ entity: "product", operation: "deleted", id: parsedId.data });
+  return { ok: true, data: { id: parsedId.data, warning: cleanup.warning } };
 }

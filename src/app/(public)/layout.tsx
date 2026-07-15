@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 
 import { serverEnv } from "@/configs/env/server";
-import { CatalogRealtimeRefresh } from "@/components/common/catalog-realtime-refresh";
 import { getStorefrontSettings } from "@/lib/repositories/storefront.repository";
 import { getPublicAssetUrl } from "@/lib/storefront";
 
@@ -40,11 +39,18 @@ export default async function PublicLayout({ children }: Readonly<{ children: Re
 
   return (
     <CartProvider>
-      <CatalogRealtimeRefresh scope="public" />
       <div className="min-h-screen bg-background text-foreground">
+        <a
+          className="fixed left-4 top-4 z-[100] -translate-y-24 rounded-lg bg-primary px-4 py-3 font-semibold text-primary-foreground shadow-lg transition focus:translate-y-0 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+          href="#main-content"
+        >
+          Lewati ke konten utama
+        </a>
         <StorefrontHeader logoUrl={logoUrl} storeName={settings.store_name} />
-        {children}
-        <StorefrontFooter settings={settings} />
+        <div className="scroll-mt-24 outline-none" id="main-content" tabIndex={-1}>
+          {children}
+        </div>
+        <StorefrontFooter logoUrl={logoUrl} settings={settings} />
       </div>
     </CartProvider>
   );

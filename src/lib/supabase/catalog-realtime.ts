@@ -4,7 +4,7 @@ import { serverEnv } from "@/configs/env/server";
 
 export type CatalogChange = {
   entity: "product" | "category";
-  operation: "created_or_updated" | "status_changed" | "archived";
+  operation: "created_or_updated" | "status_changed" | "deleted";
   id: string;
 };
 

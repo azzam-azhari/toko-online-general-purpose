@@ -14,9 +14,9 @@ describe("Supabase migrations", () => {
   it("menyimpan migration dengan urutan timestamp yang konsisten", () => {
     const migrations = readdirSync(migrationsDirectory).filter((entry) => entry.endsWith(".sql")).sort();
 
-    expect(migrations).toHaveLength(14);
+    expect(migrations).toHaveLength(17);
     expect(migrations[0]).toContain("extensions");
-    expect(migrations.at(-1)).toContain("operations");
+    expect(migrations.at(-1)).toContain("checkout_production");
     expect(new Set(migrations.map((entry) => entry.slice(0, 14))).size).toBe(migrations.length);
   });
 
@@ -27,6 +27,20 @@ describe("Supabase migrations", () => {
     expect(operations).toContain("function public.save_store_settings");
     expect(operations).toContain("insert into public.activity_logs");
     expect(operations).toContain("products_phase_6_cta_only");
+  });
+
+  it("mencatat order dan pembayaran hanya melalui kanal eksternal pada Fase 8", () => {
+    const production = readMigration("checkout_production.sql");
+
+    expect(production).toContain("function public.create_external_order");
+    expect(production).toContain("function public.update_external_payment_status");
+    expect(production).toContain("products_external_cta_only");
+    expect(production).toContain("payment_transactions_external_provider");
+    expect(production).toContain("provider in ('whatsapp', 'custom_url')");
+    expect(production).toContain("insert into public.order_items");
+    expect(production).toContain("insert into public.payment_transactions");
+    expect(production).toContain("insert into public.activity_logs");
+    expect(production).not.toContain("midtrans_server_key");
   });
 
   it("menyiarkan perubahan katalog tanpa mengekspos isi baris", () => {
@@ -50,6 +64,22 @@ describe("Supabase migrations", () => {
     expect(catalogFunctions).toContain("private.is_active_admin()");
     expect(catalogFunctions).toContain("public_url text");
     expect(catalogFunctions).toContain("url publik gambar wajib valid");
+  });
+
+  it("menghapus produk dan kategori secara permanen dengan audit serta cleanup path", () => {
+    const deletion = readMigration("permanent_catalog_deletion.sql");
+
+    expect(deletion).toContain("function public.delete_catalog_product");
+    expect(deletion).toContain("function public.delete_catalog_category");
+    expect(deletion).toContain("delete from public.products");
+    expect(deletion).toContain("delete from public.categories");
+    expect(deletion).toContain("'product.deleted'");
+    expect(deletion).toContain("'category.deleted'");
+    expect(deletion).toContain("'storage_paths'");
+    expect(deletion).toContain("private.is_active_admin()");
+    expect(deletion).toContain("products_archived_requires_deleted_at");
+    expect(deletion).toContain("drop function if exists public.archive_catalog_product");
+    expect(deletion).toContain("drop function if exists public.archive_catalog_category");
   });
 
   it("mengaktifkan dan memaksa RLS pada semua tabel aplikasi", () => {
@@ -84,5 +114,17 @@ describe("Supabase migrations", () => {
     expect(rls).not.toMatch(/grant\s+[^;]+on\s+public\.activity_logs\s+to\s+anon/);
     expect(rls).not.toContain("activity_logs_admin_update");
     expect(rls).not.toContain("activity_logs_admin_delete");
+  });
+
+  it("mencegah user Auth baru menjadi admin aktif secara otomatis", () => {
+    const security = readMigration("quality_security.sql");
+
+    expect(security).toContain("new.raw_app_meta_data ->> 'role'");
+    expect(security).toContain("= 'admin'");
+    expect(security).toContain("store_settings_public_select");
+    expect(security).toContain("for select to anon");
+    expect(security).toContain("store_settings_admin_select");
+    expect(security).toContain("private.is_active_admin()");
+    expect(security).not.toContain("image/svg+xml");
   });
 });

@@ -1,12 +1,12 @@
 "use client";
 
-import { Archive, Eye, Loader2, PauseCircle, Pencil, PlayCircle } from "lucide-react";
+import { Eye, Loader2, PauseCircle, Pencil, PlayCircle, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { toast } from "sonner";
 
-import { archiveProductAction, setProductStatusAction } from "@/actions/products.actions";
+import { deleteProductAction, setProductStatusAction } from "@/actions/products.actions";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -38,14 +38,15 @@ export function ProductRowActions({ id, name, status }: { id: string; name: stri
     });
   }
 
-  function archive() {
+  function deleteProduct() {
     startTransition(async () => {
-      const result = await archiveProductAction(id);
+      const result = await deleteProductAction(id);
       if (!result.ok) {
         toast.error(result.error.message);
         return;
       }
-      toast.success("Produk dipindahkan ke arsip.");
+      if (result.data.warning) toast.warning(result.data.warning);
+      else toast.success("Produk dan gambar terkait berhasil dihapus permanen.");
       router.refresh();
     });
   }
@@ -63,20 +64,23 @@ export function ProductRowActions({ id, name, status }: { id: string; name: stri
       </Button>
       <AlertDialog>
         <AlertDialogTrigger asChild>
-          <Button aria-label={`Arsipkan ${name}`} disabled={pending} size="icon" type="button" variant="ghost">
-            <Archive aria-hidden="true" />
+          <Button aria-label={`Hapus permanen ${name}`} disabled={pending} size="icon" type="button" variant="ghost">
+            <Trash2 aria-hidden="true" />
           </Button>
         </AlertDialogTrigger>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Arsipkan produk?</AlertDialogTitle>
+            <AlertDialogTitle>Hapus produk secara permanen?</AlertDialogTitle>
             <AlertDialogDescription>
-              “{name}” tidak akan tampil di katalog dan daftar utama. Riwayat aktivitasnya tetap tersimpan.
+              “{name}” beserta data katalog dan gambar terkait akan dihapus permanen. Data yang sudah
+              dihapus tidak dapat dikembalikan. Riwayat aktivitas tetap tersimpan untuk audit.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Batal</AlertDialogCancel>
-            <AlertDialogAction onClick={archive}>Arsipkan</AlertDialogAction>
+            <AlertDialogAction className="bg-destructive text-white hover:bg-destructive/90" onClick={deleteProduct}>
+              Hapus Permanen
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

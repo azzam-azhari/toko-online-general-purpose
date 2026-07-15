@@ -22,7 +22,9 @@ Prioritas:
 
 ## 3. Integration Test
 
-- create/update/archive produk.
+- create/update/status/hapus permanen produk dan kategori.
+- hard delete menghapus record serta relasi berantai, mempertahankan snapshot order, menulis activity log, dan mengembalikan path gambar untuk cleanup Storage.
+- cleanup Storage menolak path di luar folder UUID entity dan memberi warning bila penghapusan file gagal.
 - RLS mengizinkan admin aktif dan menolak akun tanpa profil admin aktif.
 - validasi `compare_at_price` harus lebih tinggi daripada `price` bila diisi.
 - update profil toko dan revalidation halaman publik.

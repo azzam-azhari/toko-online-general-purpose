@@ -8,22 +8,25 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { requireAdmin } from "@/lib/auth/require-admin";
 import { getStoreSettings } from "@/lib/repositories/operations.repository";
+import { getPublicAssetUrl } from "@/lib/storefront";
 
 import { DashboardNav } from "./dashboard-nav";
+import { SmartStickyHeader } from "./smart-sticky-header";
 
 export default async function DashboardLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const [{ profile, user }, settings] = await Promise.all([requireAdmin(), getStoreSettings()]);
+  const logoUrl = getPublicAssetUrl(process.env.NEXT_PUBLIC_SUPABASE_URL ?? "", "store-assets", settings.logo_path) ?? "/logo/nusamart-logo.png";
 
   return (
     <div className="min-h-screen bg-secondary/60">
       <CatalogRealtimeRefresh scope="admin" />
-      <header className="border-b bg-background">
+      <SmartStickyHeader>
         <div className="mx-auto flex min-h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6">
           <div className="flex items-center gap-3">
             <DashboardNav storeName={settings.store_name} variant="mobile" />
             <Link className="flex items-center gap-3" href="/dashboard">
               <span className="relative size-9 overflow-hidden rounded-lg bg-white">
-                <Image alt="Logo NusaMart" className="object-contain" fill priority sizes="36px" src="/logo/nusamart-logo.png" />
+                <Image alt={`Logo ${settings.store_name}`} className="object-contain" fill priority sizes="36px" src={logoUrl} />
               </span>
               <div>
                 <strong className="block leading-none">{settings.store_name}</strong>
@@ -42,7 +45,7 @@ export default async function DashboardLayout({ children }: Readonly<{ children:
             </form>
           </div>
         </div>
-      </header>
+      </SmartStickyHeader>
       <div className="mx-auto grid max-w-7xl gap-6 px-4 py-6 sm:px-6 sm:py-8 lg:grid-cols-[220px_minmax(0,1fr)]">
         <div className="hidden lg:block">
           <DashboardNav storeName={settings.store_name} variant="desktop" />

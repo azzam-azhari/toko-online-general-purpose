@@ -1,5 +1,7 @@
 import type { StorefrontProduct, StorefrontSettings } from "@/types/storefront";
 
+const WHATSAPP_PRODUCT_BASE_URL = "https://toko-online-general-purpose.vercel.app/";
+
 export const DEFAULT_STORE_SETTINGS: StorefrontSettings = {
   id: "00000000-0000-0000-0000-000000000001",
   store_name: "NusaMart",
@@ -53,10 +55,11 @@ export function buildWhatsAppUrl({
   const template =
     product.whatsapp_template ??
     "Halo, saya tertarik membeli {product_name} dengan harga {product_price}. Detail: {product_url}";
+  const publicProductUrl = new URL(new URL(productUrl).pathname, WHATSAPP_PRODUCT_BASE_URL).toString();
   const message = template
     .replaceAll("{product_name}", product.name)
     .replaceAll("{product_price}", formatRupiah(product.price))
-    .replaceAll("{product_url}", productUrl)
+    .replaceAll("{product_url}", publicProductUrl)
     .replaceAll("{product_sku}", product.sku)
     .replaceAll("{store_name}", settings.store_name);
 

@@ -5,6 +5,8 @@ Tanggal keputusan: **15 Juli 2026**
 
 Dokumen ini memfinalkan keputusan Fase 0. Bila ada rincian yang bertentangan dengan dokumen lama, keputusan di dokumen ini berlaku sampai ada decision record baru.
 
+Addendum Fase 8: [`PHASE_8_PRODUCTION.md`](./PHASE_8_PRODUCTION.md) memperbolehkan admin mencatat order manual setelah transaksi WhatsApp/custom URL diterima. Addendum ini tidak mengubah aturan bahwa klik CTA publik tidak membuat order otomatis.
+
 ## 1. Scope MVP
 
 ### Dalam scope
@@ -144,7 +146,7 @@ Keranjang hanya boleh berisi produk `midtrans` yang aktif. Produk dengan tipe CT
 ### Sumber order
 
 - Hanya checkout Midtrans yang otomatis membuat order pada MVP.
-- Custom URL dan WhatsApp hanya mencatat event CTA. Pencatatan order manual dari kanal tersebut merupakan fase lanjutan.
+- Custom URL dan WhatsApp hanya mencatat event CTA. Pencatatan order manual dari kanal tersebut diaktifkan pada Fase 8 dan hanya dapat dilakukan admin aktif melalui alur yang diaudit.
 
 ### Status dan transisi
 

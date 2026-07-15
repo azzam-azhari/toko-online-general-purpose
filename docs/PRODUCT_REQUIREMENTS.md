@@ -101,7 +101,7 @@ Menyediakan toko online general-purpose yang cepat, menarik, mudah dikelola, dan
 - `custom_url`: membuka URL yang tervalidasi.
 - `whatsapp`: membuat tautan `wa.me` dengan pesan dinamis.
 - `midtrans`: menyediakan buy-now/keranjang, membuat order dan transaksi pembayaran dari server, serta mereservasi stok selama 30 menit.
-- Keranjang hanya menerima produk aktif dengan CTA Midtrans; custom URL dan WhatsApp tidak membuat order internal pada MVP.
+- Keranjang hanya menerima produk aktif dengan CTA Midtrans. Custom URL dan WhatsApp tidak membuat order otomatis dari CTA publik; mulai Fase 8, admin dapat mencatat order eksternal secara manual setelah menerima data pelanggan.
 - Checkout Midtrans meminta identitas dan alamat pengiriman, lalu menghitung ongkir tetap dari pengaturan toko.
 - Stok tersedia dihitung dari stok fisik dikurangi reservasi dan tidak boleh negatif.
 
@@ -171,4 +171,6 @@ Menyediakan toko online general-purpose yang cepat, menarik, mudah dikelola, dan
 - Nominal Midtrans berasal dari database, bukan body client.
 - Webhook dengan signature tidak valid ditolak.
 - Penghapusan gambar membersihkan referensi database secara aman.
+- Penghapusan produk/kategori bersifat permanen, membutuhkan konfirmasi eksplisit, tercatat dalam activity log, dan membersihkan file terkait dari Supabase Storage.
+- Penghapusan kategori tidak ikut menghapus produk; hubungan kategori dilepas dan subkategori menjadi kategori utama.
 - Semua mutasi penting menghasilkan activity log.

@@ -2,10 +2,12 @@
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { revalidatePath, revalidateTag } from "next/cache";
+import { z } from "zod";
 
 import { getAdminSession } from "@/lib/auth/get-admin-session";
 import { createSlug } from "@/lib/slug";
 import { broadcastCatalogChange } from "@/lib/supabase/catalog-realtime";
+import { removeCatalogEntityFiles } from "@/lib/supabase/catalog-storage";
 import { createClient } from "@/lib/supabase/server";
 import type { ActionError, ActionResult } from "@/types/action-result";
 import { categoryFormSchema, type CategoryFormValues } from "@/validations/category.schema";
@@ -27,7 +29,24 @@ type CategoryRow = {
   deleted_at: string | null;
 };
 
+type DeleteCategoryResult = {
+  id: string;
+  warning?: string;
+};
+
+const deleteCatalogResultSchema = z.object({
+  id: databaseUuidSchema,
+  storage_paths: z.array(z.string()).default([]),
+});
+
 function mapCategoryError(error: { code?: string; message: string }): ActionError {
+  if (error.message.includes("delete_catalog_category")) {
+    return {
+      code: "CONFIGURATION_ERROR",
+      message: "Migration penghapusan permanen katalog belum diterapkan pada database Supabase.",
+    };
+  }
+
   if (error.code === "PGRST202" || error.message.includes("catalog_category")) {
     return {
       code: "CONFIGURATION_ERROR",
@@ -148,75 +167,6 @@ async function saveCategoryWithoutRpc(
   return { ok: true, data: { id } };
 }
 
-async function archiveCategoryWithoutRpc(
-  supabase: SupabaseClient,
-  id: string,
-  actorId: string,
-): Promise<ActionResult<{ id: string }>> {
-  const { data: before, error: readError } = await supabase
-    .from("categories")
-    .select("id, parent_id, name, slug, description, icon, is_active, sort_order, created_by, updated_by, created_at, updated_at, deleted_at")
-    .eq("id", id)
-    .is("deleted_at", null)
-    .maybeSingle();
-  if (readError) return { ok: false, error: mapCategoryError(readError) };
-  if (!before) return { ok: false, error: { code: "NOT_FOUND", message: "Kategori tidak ditemukan." } };
-
-  const { data: children, error: childrenError } = await supabase
-    .from("categories")
-    .select("id, parent_id")
-    .eq("parent_id", id)
-    .is("deleted_at", null);
-  if (childrenError) return { ok: false, error: mapCategoryError(childrenError) };
-
-  const childIds = (children ?? []).map((child) => child.id);
-  if (childIds.length) {
-    const { error } = await supabase.from("categories").update({ parent_id: null, updated_by: actorId }).in("id", childIds);
-    if (error) return { ok: false, error: mapCategoryError(error) };
-  }
-
-  const { data: after, error: archiveError } = await supabase
-    .from("categories")
-    .update({ is_active: false, deleted_at: new Date().toISOString(), updated_by: actorId })
-    .eq("id", id)
-    .select("id, parent_id, name, slug, description, icon, is_active, sort_order, created_by, updated_by, created_at, updated_at, deleted_at")
-    .single();
-  if (archiveError) {
-    if (childIds.length) {
-      await supabase.from("categories").update({ parent_id: id, updated_by: actorId }).in("id", childIds);
-    }
-    return { ok: false, error: mapCategoryError(archiveError) };
-  }
-
-  const { error: logError } = await supabase.from("activity_logs").insert({
-    actor_id: actorId,
-    action: "category.archived",
-    entity_type: "category",
-    entity_id: id,
-    before_data: before,
-    after_data: after,
-  });
-  if (logError) {
-    await supabase.from("categories").update({
-      parent_id: before.parent_id,
-      name: before.name,
-      slug: before.slug,
-      description: before.description,
-      icon: before.icon,
-      is_active: before.is_active,
-      sort_order: before.sort_order,
-      updated_by: before.updated_by,
-      deleted_at: before.deleted_at,
-    }).eq("id", id);
-    if (childIds.length) {
-      await supabase.from("categories").update({ parent_id: id, updated_by: actorId }).in("id", childIds);
-    }
-    return { ok: false, error: { code: "INTERNAL_ERROR", message: "Kategori tidak diarsipkan karena activity log gagal dibuat." } };
-  }
-
-  return { ok: true, data: { id } };
-}
-
 function revalidateCategoryPages() {
   revalidatePath("/dashboard");
   revalidatePath("/dashboard/categories");
@@ -277,9 +227,8 @@ export async function saveCategoryAction(
   return result;
 }
 
-export async function archiveCategoryAction(categoryId: string): Promise<ActionResult<{ id: string }>> {
-  const session = await getAdminSession();
-  if (!session) {
+export async function deleteCategoryAction(categoryId: string): Promise<ActionResult<DeleteCategoryResult>> {
+  if (!(await getAdminSession())) {
     return { ok: false, error: { code: "UNAUTHORIZED", message: "Sesi admin berakhir." } };
   }
 
@@ -289,17 +238,24 @@ export async function archiveCategoryAction(categoryId: string): Promise<ActionR
   }
 
   const supabase = await createClient();
-  const { error } = await supabase.rpc("archive_catalog_category", { p_category_id: parsedId.data });
+  const { data, error } = await supabase.rpc("delete_catalog_category", { p_category_id: parsedId.data });
+  if (error) return { ok: false, error: mapCategoryError(error) };
 
-  let result: ActionResult<{ id: string }>;
-  if (!error) result = { ok: true, data: { id: parsedId.data } };
-  else if (isMissingCatalogRpc(error)) {
-    result = await archiveCategoryWithoutRpc(supabase, parsedId.data, session.profile.id);
-  } else result = { ok: false, error: mapCategoryError(error) };
-
-  if (result.ok) {
-    revalidateCategoryPages();
-    await broadcastCatalogChange({ entity: "category", operation: "archived", id: parsedId.data });
+  const parsedResult = deleteCatalogResultSchema.safeParse(data);
+  if (!parsedResult.success || parsedResult.data.id !== parsedId.data) {
+    return {
+      ok: false,
+      error: { code: "INTERNAL_ERROR", message: "Respons penghapusan kategori dari database tidak valid." },
+    };
   }
-  return result;
+
+  const cleanup = await removeCatalogEntityFiles(
+    "category-images",
+    parsedId.data,
+    parsedResult.data.storage_paths,
+  );
+
+  revalidateCategoryPages();
+  await broadcastCatalogChange({ entity: "category", operation: "deleted", id: parsedId.data });
+  return { ok: true, data: { id: parsedId.data, warning: cleanup.warning } };
 }

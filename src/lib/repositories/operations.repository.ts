@@ -3,6 +3,7 @@ import "server-only";
 import { createClient } from "@/lib/supabase/server";
 import type {
   Banner,
+  ExternalOrderProduct,
   Faq,
   LowStockProduct,
   Order,
@@ -57,7 +58,7 @@ function sanitizeSearch(value = "") {
   return value.replace(/[%_,().]/g, " ").trim().slice(0, 80);
 }
 
-type OrderRow = Omit<Order, "subtotal" | "discount_total" | "shipping_total" | "grand_total" | "items" | "history"> & {
+type OrderRow = Omit<Order, "subtotal" | "discount_total" | "shipping_total" | "grand_total" | "items" | "history" | "payments"> & {
   subtotal: number | string;
   discount_total: number | string;
   shipping_total: number | string;
@@ -79,6 +80,19 @@ type OrderRow = Omit<Order, "subtotal" | "discount_total" | "shipping_total" | "
     created_at: string;
     actor: { full_name: string | null } | Array<{ full_name: string | null }> | null;
   }> | null;
+  payment_transactions?: Array<{
+    id: string;
+    provider: "whatsapp" | "custom_url";
+    provider_order_id: string;
+    transaction_id: string | null;
+    transaction_status: string | null;
+    gross_amount: number | string;
+    currency: string;
+    paid_at: string | null;
+    expired_at: string | null;
+    created_at: string;
+    updated_at: string;
+  }> | null;
 };
 
 function mapOrder(row: OrderRow): Order {
@@ -97,6 +111,10 @@ function mapOrder(row: OrderRow): Order {
       const actor = Array.isArray(entry.actor) ? entry.actor[0] : entry.actor;
       return { ...entry, actor_name: actor?.full_name ?? null };
     }),
+    payments: (row.payment_transactions ?? []).map((payment) => ({
+      ...payment,
+      gross_amount: Number(payment.gross_amount),
+    })),
   };
 }
 
@@ -113,7 +131,7 @@ export async function getOrders(options: {
   const from = (page - 1) * pageSize;
   let query = supabase
     .from("orders")
-    .select("id, order_number, customer_name, customer_email, customer_phone, customer_address, status, payment_status, payment_method, currency, subtotal, discount_total, shipping_total, grand_total, notes, reconciliation_required, created_at, updated_at", { count: "exact" })
+    .select("id, order_number, customer_name, customer_email, customer_phone, customer_address, status, payment_status, payment_method, sales_channel, source_reference, currency, subtotal, discount_total, shipping_total, grand_total, notes, reconciliation_required, created_at, updated_at", { count: "exact" })
     .is("deleted_at", null);
 
   const search = sanitizeSearch(options.search);
@@ -130,13 +148,33 @@ export async function getOrderById(id: string): Promise<Order | null> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("orders")
-    .select("id, order_number, customer_name, customer_email, customer_phone, customer_address, status, payment_status, payment_method, currency, subtotal, discount_total, shipping_total, grand_total, notes, reconciliation_required, created_at, updated_at, order_items(id, product_id, product_name, product_sku, unit_price, quantity, line_total), order_status_history(id, from_status, to_status, note, created_at, actor:profiles!order_status_history_actor_id_fkey(full_name))")
+    .select("id, order_number, customer_name, customer_email, customer_phone, customer_address, status, payment_status, payment_method, sales_channel, source_reference, currency, subtotal, discount_total, shipping_total, grand_total, notes, reconciliation_required, created_at, updated_at, order_items(id, product_id, product_name, product_sku, unit_price, quantity, line_total), order_status_history(id, from_status, to_status, note, created_at, actor:profiles!order_status_history_actor_id_fkey(full_name)), payment_transactions(id, provider, provider_order_id, transaction_id, transaction_status, gross_amount, currency, paid_at, expired_at, created_at, updated_at)")
     .eq("id", id)
     .is("deleted_at", null)
     .order("created_at", { referencedTable: "order_status_history", ascending: true })
     .maybeSingle();
   if (error) throw new OperationsRepositoryError("Detail pesanan belum dapat dimuat.");
   return data ? mapOrder(data as unknown as OrderRow) : null;
+}
+
+export async function getExternalOrderProducts(): Promise<ExternalOrderProduct[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("products")
+    .select("id, name, sku, price, stock, reserved_stock, cta_type")
+    .eq("status", "active")
+    .is("deleted_at", null)
+    .in("cta_type", ["whatsapp", "custom_url"])
+    .order("name");
+  if (error) throw new OperationsRepositoryError("Produk untuk pesanan belum dapat dimuat.");
+  return (data ?? []).map((product) => ({
+    id: product.id,
+    name: product.name,
+    sku: product.sku,
+    price: Number(product.price),
+    available_stock: Number(product.stock) - Number(product.reserved_stock),
+    sales_channel: product.cta_type as "whatsapp" | "custom_url",
+  }));
 }
 
 export async function getContentManagementData() {

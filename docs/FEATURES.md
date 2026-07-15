@@ -53,7 +53,7 @@
 - Informasi pelanggan.
 - Alamat pengiriman lengkap untuk checkout Midtrans.
 - Ringkasan item.
-- Custom URL dan WhatsApp langsung menjalankan CTA tanpa masuk keranjang atau membuat order.
+- Custom URL dan WhatsApp langsung menjalankan CTA tanpa masuk keranjang atau membuat order otomatis; admin dapat mencatat transaksi eksternal setelahnya dari dashboard.
 - Midtrans menyediakan buy-now dan checkout keranjang.
 - Ongkir tetap toko; integrasi tarif kurir berada di fase lanjutan.
 - Pembuatan order.
@@ -99,8 +99,8 @@
 
 ### Produk
 
-- Create, read, update, archive.
-- Status draft, active, inactive, archived.
+- Create, read, update, dan hapus permanen dengan konfirmasi yang tidak dapat dibatalkan.
+- Status draft, active, dan inactive. Nilai `archived` hanya dipertahankan untuk kompatibilitas data lama.
 - Galeri gambar.
 - Slug otomatis dan override.
 - SKU unik.
@@ -116,7 +116,7 @@
 
 ### Kategori
 
-- CRUD.
+- CRUD dengan penghapusan permanen. Penghapusan kategori melepas hubungan produk tanpa menghapus produknya.
 - Hierarki opsional melalui `parent_id`.
 - Status aktif.
 - Gambar atau ikon.
@@ -126,8 +126,11 @@
 ### Pesanan
 
 - Daftar dan detail.
+- Pencatatan manual order yang diterima melalui WhatsApp atau tautan eksternal; klik CTA publik tidak membuat order.
+- Snapshot item dan harga dari database, bukan input harga client.
 - Filter status order dan pembayaran.
 - Perubahan status.
+- Verifikasi payment ledger eksternal serta penanda rekonsiliasi.
 - Timeline status.
 - Data pelanggan.
 - Item dan nominal.

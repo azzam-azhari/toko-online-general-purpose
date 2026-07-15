@@ -1,0 +1,51 @@
+name: Production Database Backup
+
+on:
+  schedule:
+    - cron: "17 18 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-database-backup
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_PRODUCTION_DB_URL }}
+      BACKUP_ENCRYPTION_PASSPHRASE: ${{ secrets.BACKUP_ENCRYPTION_PASSPHRASE }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Require production database secret
+        run: test -n "$SUPABASE_DB_URL" && test -n "$BACKUP_ENCRYPTION_PASSPHRASE"
+
+      - name: Create schema, role, and data dumps
+        run: |
+          mkdir -p backup
+          npx supabase db dump --db-url "$SUPABASE_DB_URL" --file backup/schema.sql
+          npx supabase db dump --db-url "$SUPABASE_DB_URL" --role-only --file backup/roles.sql
+          npx supabase db dump --db-url "$SUPABASE_DB_URL" --data-only --use-copy --file backup/data.sql
+
+      - name: Encrypt backup package
+        run: |
+          tar -czf "production-backup-${GITHUB_RUN_ID}.tar.gz" backup
+          openssl enc -aes-256-cbc -salt -pbkdf2 \
+            -in "production-backup-${GITHUB_RUN_ID}.tar.gz" \
+            -out "production-backup-${GITHUB_RUN_ID}.tar.gz.enc" \
+            -pass env:BACKUP_ENCRYPTION_PASSPHRASE
+          rm -rf backup "production-backup-${GITHUB_RUN_ID}.tar.gz"
+
+      - name: Upload restricted backup artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-backup-${{ github.run_id }}
+          path: production-backup-${{ github.run_id }}.tar.gz.enc
+          retention-days: 14
+          if-no-files-found: error

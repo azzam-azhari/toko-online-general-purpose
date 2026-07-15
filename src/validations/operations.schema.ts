@@ -4,6 +4,7 @@ import { ORDER_STATUSES, PAYMENT_STATUSES } from "@/types/operations";
 import { databaseUuidSchema } from "@/validations/database.schema";
 
 const optionalText = (max: number) => z.string().trim().max(max).transform((value) => value || undefined);
+const optionalInputText = (max: number) => z.preprocess((value) => value ?? "", optionalText(max));
 const optionalHttpsUrl = z.string().trim().max(500).refine(
   (value) => !value || /^https:\/\/[^\s]+$/i.test(value),
   "Gunakan URL HTTPS yang valid.",
@@ -20,6 +21,38 @@ export const orderStatusUpdateSchema = z.object({
   order_id: databaseUuidSchema,
   status: z.enum(ORDER_STATUSES),
   note: optionalText(500),
+});
+
+export const externalOrderSchema = z.object({
+  idempotency_key: databaseUuidSchema,
+  sales_channel: z.enum(["whatsapp", "custom_url"]),
+  customer_name: z.string().trim().min(1, "Nama pelanggan wajib diisi.").max(120),
+  customer_email: z.preprocess((value) => value ?? "", z.string().trim().max(254).refine(
+    (value) => !value || z.email().safeParse(value).success,
+    "Email pelanggan tidak valid.",
+  ).transform((value) => value || undefined)),
+  customer_phone: z.string().trim().min(8, "Nomor pelanggan terlalu pendek.").max(24),
+  source_reference: optionalInputText(160),
+  notes: optionalInputText(1000),
+  items: z.array(z.object({
+    product_id: databaseUuidSchema,
+    quantity: z.coerce.number().int().min(1).max(100),
+  })).min(1, "Tambahkan setidaknya satu item.").max(50).refine(
+    (items) => new Set(items.map((item) => item.product_id)).size === items.length,
+    "Produk yang sama tidak boleh ditambahkan dua kali.",
+  ),
+});
+
+export const externalPaymentUpdateSchema = z.object({
+  order_id: databaseUuidSchema,
+  status: z.enum(["pending", "paid", "failed", "expired", "refunded"]),
+  reference: optionalInputText(160),
+  note: optionalInputText(500),
+});
+
+export const publicOrderLookupSchema = z.object({
+  order_number: z.string().trim().toUpperCase().min(8).max(80),
+  contact: z.string().trim().min(5).max(254),
 });
 
 export const bannerSchema = z.object({

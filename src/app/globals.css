@@ -16,7 +16,10 @@
   --secondary-foreground: #0d392b;
   --muted: #f2efe7;
   --muted-foreground: #64706b;
-  --accent: #e66f51;
+  /* Keep the original coral for decorative brand accents, while interactive/text
+     accents use a darker coral that meets WCAG AA on cream and paper surfaces. */
+  --brand-coral: #e66f51;
+  --accent: #a33f2a;
   --accent-foreground: #ffffff;
   --destructive: #c23b31;
   --border: #dedbd3;

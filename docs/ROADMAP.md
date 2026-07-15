@@ -72,25 +72,28 @@ Integrasi Midtrans beserta order dan pembayaran tetap dijadwalkan pada Fase 8 ag
 - [x] Sales chart berdasarkan order dengan pembayaran lunas.
 - [x] Metode pembelian aktif dibatasi ke WhatsApp dan tautan eksternal; Midtrans tetap ditunda sampai Fase 8.
 
-## Fase 7 — Quality
+## Fase 7 — Quality (sebagian selesai)
 
-- Unit/integration/E2E.
-- Accessibility audit.
-- Performance optimization.
-- Security hardening.
-- UAT staging.
+- [x] Unit/integration/E2E dengan coverage dan quality gate CI.
+- [x] Accessibility audit otomatis WCAG A/AA pada desktop dan mobile, perbaikan kontras, serta skip link keyboard.
+- [x] Performance optimization dan performance budget storefront.
+- [x] Security hardening pada aplikasi, Auth config, dependency, upload, dan migration/RLS.
+- [ ] UAT staging. Memerlukan deployment, Supabase project, akun admin, dan persetujuan tester staging; lihat [`PHASE_7_QUALITY.md`](./PHASE_7_QUALITY.md).
 
 ## Fase 8 — Checkout dan Production
 
-- Orders dan order items.
-- Payment transaction. (pastikan hanya memakai Whatsapp dan link eksternal)
-- Status order.
-- Production migration.
-- Domain.
-- Aktivasi Midtrans production setelah pengujian sandbox dan UAT selesai.
-- Monitoring.
-- Backup.
-- Runbook insiden.
+Implementasi dan prosedur: [`PHASE_8_PRODUCTION.md`](./PHASE_8_PRODUCTION.md).
+
+- [x] Orders dan order items untuk pencatatan penjualan eksternal oleh admin; CTA publik tidak membuat order otomatis.
+- [x] Payment transaction dibatasi hanya untuk WhatsApp dan tautan eksternal.
+- [x] Status order, status pembayaran, timeline, activity log, dan rekonsiliasi.
+- [x] Production migration dan release gate tersedia.
+- [x] Domain canonical `https://toko-online-general-purpose.vercel.app/` diterapkan.
+- [ ] Aktivasi Midtrans production setelah pengujian sandbox dan UAT selesai. Tetap dinonaktifkan karena UAT staging belum disetujui.
+- [x] Monitoring liveness/readiness setiap 15 menit dan issue insiden otomatis.
+- [x] Backup database terjadwal beserta restore drill.
+- [x] Runbook insiden.
+- [ ] Penerapan migration ke production. Wajib melalui backup, UAT approval, dan GitHub Environment `production`.
 
 ## Fase Lanjutan
 
@@ -103,8 +106,6 @@ Integrasi Midtrans beserta order dan pembayaran tetap dijadwalkan pada Fase 8 ag
 - Email notification.
 - Analytics funnel.
 - Multi-language.
-
-## Midtrans setup
 - Midtrans Snap.
 - Webhook pembayaran yang terverifikasi dan idempotent.
 - Keranjang user

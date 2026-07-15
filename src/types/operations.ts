@@ -11,6 +11,7 @@ export const PAYMENT_STATUSES = ["unpaid", "pending", "paid", "failed", "expired
 
 export type OrderStatus = (typeof ORDER_STATUSES)[number];
 export type PaymentStatus = (typeof PAYMENT_STATUSES)[number];
+export type ExternalSalesChannel = "whatsapp" | "custom_url";
 
 export type OrderItem = {
   id: string;
@@ -31,6 +32,20 @@ export type OrderStatusHistory = {
   actor_name: string | null;
 };
 
+export type PaymentTransaction = {
+  id: string;
+  provider: ExternalSalesChannel;
+  provider_order_id: string;
+  transaction_id: string | null;
+  transaction_status: string | null;
+  gross_amount: number;
+  currency: string;
+  paid_at: string | null;
+  expired_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 export type Order = {
   id: string;
   order_number: string;
@@ -41,6 +56,8 @@ export type Order = {
   status: OrderStatus;
   payment_status: PaymentStatus;
   payment_method: string | null;
+  sales_channel: ExternalSalesChannel;
+  source_reference: string | null;
   currency: string;
   subtotal: number;
   discount_total: number;
@@ -52,6 +69,16 @@ export type Order = {
   updated_at: string;
   items: OrderItem[];
   history: OrderStatusHistory[];
+  payments: PaymentTransaction[];
+};
+
+export type ExternalOrderProduct = {
+  id: string;
+  name: string;
+  sku: string;
+  price: number;
+  available_stock: number;
+  sales_channel: ExternalSalesChannel;
 };
 
 export type Banner = {

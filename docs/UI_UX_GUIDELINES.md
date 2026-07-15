@@ -86,7 +86,7 @@ Perilaku berbagi:
 - Page header dengan judul, deskripsi singkat, dan satu primary action.
 - Halaman produk selalu menampilkan tombol **Tambah Produk** dengan posisi konsisten.
 - Filter berada dekat tabel.
-- Destructive action membutuhkan konfirmasi.
+- Aksi hapus produk/kategori memakai ikon tong sampah dan membutuhkan dialog konfirmasi yang secara eksplisit menyatakan data dihapus permanen serta tidak dapat dikembalikan.
 - Form produk dibagi menjadi **Informasi Dasar**, **Harga**, **Stok**, **Gambar**, **Tombol Beli**, dan **Publikasi**.
 - Setiap istilah yang berpotensi membingungkan memiliki helper text dan contoh singkat.
 - Opsi lanjutan seperti slug dan SEO berada dalam bagian **Pengaturan Lanjutan** yang dapat dibuka bila diperlukan.

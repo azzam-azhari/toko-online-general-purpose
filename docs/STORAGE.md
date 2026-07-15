@@ -49,10 +49,13 @@ SVG perlu penanganan ekstra karena dapat membawa konten aktif. Batasi SVG hanya 
 
 ## 5. Delete Flow
 
-- Soft delete record produk tidak langsung menghapus file.
-- Hard delete file dilakukan setelah memastikan tidak ada referensi.
-- Catat aktivitas.
-- Sediakan cleanup job untuk orphan files.
+- Admin harus melihat konfirmasi bahwa produk/kategori yang dihapus tidak dapat dikembalikan.
+- Fungsi database menghapus record produk/kategori secara permanen dalam satu transaksi, termasuk relasi berantai, lalu mencatat snapshot `before_data` pada activity log.
+- Fungsi database mengembalikan daftar path gambar sebelum record gambar terhapus.
+- Server Action yang sudah memvalidasi admin aktif memakai service role hanya di server untuk menghapus path tersebut dan seluruh file yang tersisa di folder entity pada bucket terkait.
+- Path harus berada di folder UUID entity, tidak boleh absolut, mengandung traversal (`..`), backslash, atau karakter kontrol.
+- Cleanup Storage dicoba ulang sekali. Bila masih gagal, UI wajib memberi peringatan jujur bahwa data database sudah terhapus tetapi cleanup file belum terverifikasi.
+- Cleanup orphan files terjadwal tetap disarankan sebagai pertahanan tambahan untuk kegagalan layanan eksternal.
 
 ## 6. Storage Policy
 

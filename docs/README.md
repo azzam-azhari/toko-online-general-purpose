@@ -51,6 +51,9 @@ Versi aktual tetap harus diverifikasi melalui `package.json` dan lockfile.
 | Dokumen | Tujuan |
 |---|---|
 | `PHASE_0_DISCOVERY.md` | Keputusan final scope, brand/konten, checkout, stok, dan order |
+| `PHASE_8_PRODUCTION.md` | Implementasi order eksternal, payment ledger, release, monitoring, dan backup |
+| `INCIDENT_RUNBOOK.md` | Respons, pemulihan, restore, dan penutupan insiden production |
+| `PRODUCTION_MIGRATION_BASELINE.md` | Rekonsiliasi aman schema live dengan riwayat migration sebelum release |
 | `PRODUCT_REQUIREMENTS.md` | Kebutuhan produk, persona, tujuan, dan acceptance criteria |
 | `FEATURES.md` | Daftar fitur publik dan dashboard |
 | `ARCHITECTURE.md` | Arsitektur sistem dan aliran data |

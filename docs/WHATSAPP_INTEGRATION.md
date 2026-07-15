@@ -65,7 +65,7 @@ Selalu gunakan `encodeURIComponent` untuk pesan.
 - CTA WhatsApp tidak aktif bila nomor tidak tersedia.
 - Template kosong menggunakan default.
 - Data produk harus berasal dari server-rendered data tepercaya.
-- URL produk dibentuk dari `NEXT_PUBLIC_APP_URL`.
+- URL produk production memakai `https://toko-online-general-purpose.vercel.app/products/{slug}` agar pesan tidak membawa origin localhost atau preview deployment.
 
 ## 7. Analytics
 

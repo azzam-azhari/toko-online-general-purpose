@@ -1,13 +1,29 @@
-import { Camera, Mail, MapPin, Phone, Share2 } from "lucide-react";
+import { Mail, MapPin, Phone } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
-import { getPublicAssetUrl } from "@/lib/storefront";
 import type { StorefrontSettings } from "@/types/storefront";
 
-export function StorefrontFooter({ settings }: { settings: StorefrontSettings }) {
-  const logoUrl = getPublicAssetUrl(settings.asset_base_url, "store-assets", settings.logo_path);
+function FacebookIcon() {
+  return (
+    <svg aria-hidden="true" className="size-5 fill-[#1877f2]" viewBox="0 0 24 24">
+      <path d="M13.7 21v-8h2.7l.4-3.1h-3.1v-2c0-.9.3-1.5 1.6-1.5H17V3.6c-.3 0-1.3-.1-2.5-.1-2.5 0-4.2 1.5-4.2 4.3v2.1H7.5V13h2.8v8h3.4Z" />
+    </svg>
+  );
+}
+
+function InstagramIcon() {
+  return (
+    <svg aria-hidden="true" className="size-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+      <rect height="18" rx="5" width="18" x="3" y="3" />
+      <circle cx="12" cy="12" r="4" />
+      <circle cx="17.5" cy="6.5" fill="currentColor" r="1" stroke="none" />
+    </svg>
+  );
+}
+
+export function StorefrontFooter({ settings, logoUrl }: { settings: StorefrontSettings; logoUrl: string }) {
   return (
     <footer className="mt-24 border-t bg-[#0d392b] text-white">
       <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 md:grid-cols-2 lg:grid-cols-4 lg:px-8">
@@ -21,13 +37,13 @@ export function StorefrontFooter({ settings }: { settings: StorefrontSettings })
           </p>
           <div className="mt-5 flex gap-2">
             {settings.facebook_url ? (
-              <Button asChild className="border-white/15 text-white hover:bg-white/10" size="icon" variant="outline">
-                <a aria-label="Facebook" href={settings.facebook_url} rel="noreferrer" target="_blank"><Share2 aria-hidden="true" /></a>
+              <Button asChild className="border-white/20 bg-white text-[#1877f2] hover:bg-white/90 hover:text-[#1877f2]" size="icon" variant="outline">
+                <a aria-label="Facebook" href={settings.facebook_url} rel="noreferrer" target="_blank"><FacebookIcon /></a>
               </Button>
             ) : null}
             {settings.instagram_url ? (
-              <Button asChild className="border-white/15 text-white hover:bg-white/10" size="icon" variant="outline">
-                <a aria-label="Instagram" href={settings.instagram_url} rel="noreferrer" target="_blank"><Camera aria-hidden="true" /></a>
+              <Button asChild className="border-white/20 bg-white text-[#e4405f] hover:bg-white/90 hover:text-[#e4405f]" size="icon" variant="outline">
+                <a aria-label="Instagram" href={settings.instagram_url} rel="noreferrer" target="_blank"><InstagramIcon /></a>
               </Button>
             ) : null}
           </div>
@@ -39,6 +55,7 @@ export function StorefrontFooter({ settings }: { settings: StorefrontSettings })
             <li><Link className="hover:text-white" href="/products">Semua Produk</Link></li>
             <li><Link className="hover:text-white" href="/products?sort=latest">Produk Terbaru</Link></li>
             <li><Link className="hover:text-white" href="/products?sort=popular">Produk Pilihan</Link></li>
+            <li><Link className="hover:text-white" href="/order/status">Status Pesanan</Link></li>
             {settings.whatsapp_number ? <li><a className="hover:text-white" href={`https://wa.me/${settings.whatsapp_number.replace(/\D/g, "").replace(/^0/, "62")}`}>Pesan via WhatsApp</a></li> : null}
           </ul>
         </div>
@@ -66,7 +83,7 @@ export function StorefrontFooter({ settings }: { settings: StorefrontSettings })
         </div>
       </div>
       <div className="border-t border-white/10">
-        <div className="mx-auto flex max-w-7xl flex-col gap-2 px-4 py-5 text-xs text-white/50 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
+        <div className="mx-auto flex max-w-7xl flex-col gap-2 px-4 py-5 text-xs text-white/60 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
           <p>© {new Date().getFullYear()} {settings.store_name}. Hak cipta dilindungi.</p>
           <p>{settings.tagline ?? "Pilihan Tepat, Hidup Lebih Hebat"}</p>
         </div>

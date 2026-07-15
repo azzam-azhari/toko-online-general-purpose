@@ -23,11 +23,14 @@ Daftar awal:
 ```ts
 createProductAction(input)
 updateProductAction(id, input)
-archiveProductAction(id)
+deleteProductAction(id)
 setProductStatusAction(id, status)
 createCategoryAction(input)
 updateCategoryAction(id, input)
+deleteCategoryAction(id)
 updateOrderStatusAction(id, status)
+createExternalOrderAction(input)
+updateExternalPaymentStatusAction(input)
 updateStoreSettingsAction(input)
 updateStoreProfileAction(input)
 createBannerAction(input)
@@ -42,6 +45,8 @@ Setiap action harus:
 5. Menulis activity log.
 6. Melakukan revalidation.
 7. Mengembalikan `ActionResult`.
+
+`deleteProductAction` dan `deleteCategoryAction` memanggil RPC hard-delete transaksional. Setelah database mengembalikan path gambar, action membersihkan bucket Storage dengan service role server-only dan mengembalikan `warning` bila cleanup eksternal belum dapat diverifikasi.
 
 ## 3. Route Handlers
 
@@ -101,6 +106,18 @@ Response minimum:
   "status": "ok"
 }
 ```
+
+### `GET /api/health/ready`
+
+Memeriksa koneksi database untuk monitoring production. Respons hanya `ready` atau `degraded`, memakai `no-store`, dan tidak mengembalikan detail database.
+
+### `POST /api/orders/status`
+
+- Menerima `order_number` dan `contact` (email atau telepon).
+- Rate limited per IP.
+- Pencocokan contact dilakukan server-side.
+- Respons tidak mengembalikan nama, email, telepon, alamat, payment payload, atau data internal.
+- Error pesanan tidak ada dan contact tidak cocok menggunakan pesan generik.
 
 ## 4. Zod
 

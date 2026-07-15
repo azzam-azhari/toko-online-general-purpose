@@ -6,7 +6,7 @@
 - UUID untuk primary key.
 - `timestamptz` untuk waktu.
 - Nilai uang disimpan sebagai integer satuan terkecil, misalnya rupiah penuh sebagai `bigint`.
-- Soft delete digunakan untuk data yang perlu jejak audit.
+- Soft delete digunakan untuk data operasional yang perlu dipertahankan. Produk dan kategori dihapus permanen hanya melalui fungsi admin transaksional; snapshot sebelum penghapusan tetap tersimpan di `activity_logs` dan file gambarnya dibersihkan dari Storage.
 - RLS aktif untuk tabel yang dapat diakses melalui Supabase API.
 - Operasi administratif tetap memerlukan validasi server.
 
@@ -128,6 +128,8 @@ Unique parsial disarankan agar hanya ada satu `is_primary = true` per produk.
 - `status order_status`
 - `payment_status payment_status`
 - `payment_method text`
+- `sales_channel text` (`whatsapp` atau `custom_url`)
+- `source_reference text nullable`
 - `currency text default 'IDR'`
 - `subtotal bigint`
 - `discount_total bigint`
@@ -161,6 +163,7 @@ Snapshot data harus disimpan agar perubahan produk tidak mengubah histori order.
 - `id uuid`
 - `order_id uuid`
 - `provider text default 'midtrans'`
+- Pada Fase 8 production, `provider` dibatasi ke `whatsapp` atau `custom_url`; default `whatsapp`.
 - `provider_order_id text`
 - `transaction_id text nullable`
 - `transaction_status text nullable`
@@ -314,4 +317,13 @@ Pisahkan migration menjadi:
 010_rls.sql
 011_storage.sql
 012_catalog_functions.sql
+013_realtime_catalog.sql
+014_operations.sql
+015_quality_security.sql
+016_permanent_catalog_deletion.sql
+017_checkout_production.sql
 ```
+
+`delete_catalog_product` dan `delete_catalog_category` melakukan hard delete di database, menyimpan snapshot audit dalam transaksi yang sama, dan mengembalikan daftar `storage_path` untuk dibersihkan oleh Server Action. Relasi `product_images` dan `product_categories` menggunakan `ON DELETE CASCADE`; `order_items.product_id` menggunakan `ON DELETE SET NULL` agar snapshot transaksi tetap utuh.
+
+`create_external_order` memvalidasi admin, idempotency, kanal, produk aktif, stok, dan harga sebelum membuat order/item/payment ledger. `update_external_payment_status` mencatat pembayaran eksternal, mengurangi stok tepat satu kali ketika lunas, serta menandai rekonsiliasi bila stok tidak mencukupi.
