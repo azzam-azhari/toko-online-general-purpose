@@ -101,6 +101,14 @@ Perilaku berbagi:
 - Tampilkan pratinjau header/footer agar admin memahami dampak perubahan.
 - Gunakan tombol **Simpan Perubahan** dan tampilkan status terakhir disimpan.
 
+### Pengaturan
+
+- Gunakan halaman mandiri **Pengaturan**, bukan anchor atau pengalihan ke Profil Toko.
+- Tempatkan threshold stok rendah, mata uang, zona waktu, ongkir, dan ringkasan kanal pembelian pada halaman ini.
+- Pada mobile, navbar harus menjaga menu, identitas toko, dan tombol keluar tetap terlihat tanpa overflow.
+- Drawer navigasi mobile harus mentok bagian atas dan bawah viewport (`100dvh`), dengan header/footer tetap dan daftar menu yang dapat di-scroll.
+- Pada laptop dan tablet orientasi landscape, sidebar dashboard menggunakan sticky positioning dengan jarak aman dari navbar, tinggi maksimal mengikuti viewport, dan tetap dibatasi oleh area konten agar tidak menutupi footer.
+
 ## 7. State
 
 Setiap screen wajib mempertimbangkan:

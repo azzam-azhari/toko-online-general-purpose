@@ -89,11 +89,9 @@ Implementasi dan prosedur: [`PHASE_8_PRODUCTION.md`](./PHASE_8_PRODUCTION.md).
 - [x] Status order, status pembayaran, timeline, activity log, dan rekonsiliasi.
 - [x] Production migration dan release gate tersedia.
 - [x] Domain canonical `https://toko-online-general-purpose.vercel.app/` diterapkan.
-- [ ] Aktivasi Midtrans production setelah pengujian sandbox dan UAT selesai. Tetap dinonaktifkan karena UAT staging belum disetujui.
 - [x] Monitoring liveness/readiness setiap 15 menit dan issue insiden otomatis.
 - [x] Backup database terjadwal beserta restore drill.
 - [x] Runbook insiden.
-- [ ] Penerapan migration ke production. Wajib melalui backup, UAT approval, dan GitHub Environment `production`.
 
 ## Fase Lanjutan
 
@@ -109,3 +107,5 @@ Implementasi dan prosedur: [`PHASE_8_PRODUCTION.md`](./PHASE_8_PRODUCTION.md).
 - Midtrans Snap.
 - Webhook pembayaran yang terverifikasi dan idempotent.
 - Keranjang user
+- [ ] Aktivasi Midtrans production setelah pengujian sandbox dan UAT selesai. Tetap dinonaktifkan karena UAT staging belum disetujui.
+- [ ] Penerapan migration ke production. Wajib melalui backup, UAT approval, dan GitHub Environment `production`.

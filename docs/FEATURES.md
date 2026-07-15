@@ -146,18 +146,17 @@
 - Profil toko: nama, tagline, deskripsi, logo, favicon, kontak, alamat, dan jam operasional.
 - Tautan sosial media, termasuk WhatsApp, Facebook, dan Instagram.
 - Pratinjau perubahan profil pada area publik utama.
+- Konten Website dan Profil Toko tidak memuat konfigurasi operasional.
 
 ### Pengaturan
 
-- Identitas toko.
-- Logo dan favicon.
-- WhatsApp.
+- Halaman mandiri di `/dashboard/settings`, terpisah dari Konten Website.
+- Threshold stok rendah.
 - Mata uang.
 - Zona waktu.
-- SEO.
+- Ongkir tetap dan ringkasan kanal pembelian.
 - Konfigurasi Midtrans.
 - Default CTA.
-- Threshold stok rendah.
 
 ### Pengguna
 

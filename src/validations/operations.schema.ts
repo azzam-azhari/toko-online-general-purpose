@@ -112,7 +112,12 @@ export const storeSettingsSchema = z.object({
   seo_description: optionalText(170),
 });
 
+export const operationalSettingsSchema = z.object({
+  low_stock_threshold: z.coerce.number().int().min(0).max(1_000_000),
+});
+
 export type BannerInput = z.infer<typeof bannerSchema>;
 export type TestimonialInput = z.infer<typeof testimonialSchema>;
 export type FaqInput = z.infer<typeof faqSchema>;
 export type StoreSettingsInput = z.infer<typeof storeSettingsSchema>;
+export type OperationalSettingsInput = z.infer<typeof operationalSettingsSchema>;

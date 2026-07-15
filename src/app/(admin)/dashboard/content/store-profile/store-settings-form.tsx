@@ -42,6 +42,8 @@ export function StoreSettingsForm({ settings, assetBaseUrl }: { settings: StoreS
 
   return (
     <form className="grid gap-6 xl:grid-cols-[minmax(0,1.15fr)_minmax(300px,.85fr)]" onSubmit={submit}>
+      <input name="flat_shipping_fee" type="hidden" value={settings.flat_shipping_fee} />
+      <input name="low_stock_threshold" type="hidden" value={settings.low_stock_threshold} />
       <div className="space-y-5">
         <Card><CardHeader><CardTitle className="font-sans text-xl">Identitas</CardTitle><CardDescription>Nama dan tampilan dasar toko pada header, footer, dan metadata.</CardDescription></CardHeader><CardContent className="grid gap-4">
           <div><Label htmlFor="store-name">Nama toko</Label><Input defaultValue={settings.store_name} id="store-name" name="store_name" onChange={(event) => setPreview((state) => ({ ...state, store_name: event.target.value }))} /><FieldError errors={errors} name="store_name" /></div>
@@ -68,12 +70,6 @@ export function StoreSettingsForm({ settings, assetBaseUrl }: { settings: StoreS
           <div><Label htmlFor="store-seo-description">Deskripsi SEO</Label><Textarea defaultValue={settings.seo_description ?? ""} id="store-seo-description" name="seo_description" /><FieldError errors={errors} name="seo_description" /></div>
         </CardContent></Card>
 
-        <Card id="operational-settings"><CardHeader><CardTitle className="font-sans text-xl">Pengaturan Operasional</CardTitle><CardDescription>Untuk Phase 6, metode beli aktif hanya WhatsApp dan tautan eksternal.</CardDescription></CardHeader><CardContent className="grid gap-4 sm:grid-cols-2">
-          <div><Label htmlFor="store-threshold">Batas stok rendah</Label><Input defaultValue={settings.low_stock_threshold} id="store-threshold" min="0" name="low_stock_threshold" type="number" /><FieldError errors={errors} name="low_stock_threshold" /></div>
-          <div><Label htmlFor="store-shipping">Ongkir tetap (persiapan Phase 8)</Label><Input defaultValue={settings.flat_shipping_fee} disabled id="store-shipping-display" type="number" /><input name="flat_shipping_fee" type="hidden" value={settings.flat_shipping_fee} /></div>
-          <input name="currency" type="hidden" value="IDR" /><input name="timezone" type="hidden" value="Asia/Jakarta" />
-          <div className="rounded-lg border bg-secondary/50 p-3 text-sm"><strong>Mata uang</strong><p className="mt-1 text-muted-foreground">IDR â€” Rupiah Indonesia</p></div><div className="rounded-lg border bg-secondary/50 p-3 text-sm"><strong>Zona waktu</strong><p className="mt-1 text-muted-foreground">Asia/Jakarta</p></div>
-        </CardContent></Card>
       </div>
 
       <aside className="space-y-4 xl:sticky xl:top-6 xl:h-fit">

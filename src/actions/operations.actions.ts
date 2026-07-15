@@ -11,6 +11,7 @@ import {
   externalOrderSchema,
   externalPaymentUpdateSchema,
   faqSchema,
+  operationalSettingsSchema,
   orderStatusUpdateSchema,
   storeSettingsSchema,
   testimonialSchema,
@@ -135,6 +136,18 @@ async function saveStoreSettingsWithoutRpc(
   }
 
   return { ok: true, data: { id: STORE_SETTINGS_ID } };
+}
+
+async function persistStoreSettings(
+  supabase: SupabaseClient,
+  payload: StoreSettingsPayload,
+  actorId: string,
+  fallbackMessage: string,
+): Promise<ActionResult<{ id: string }>> {
+  const { data, error } = await supabase.rpc("save_store_settings", { p_payload: payload });
+  if (!error) return { ok: true, data: { id: String(data) } };
+  if (isMissingStoreSettingsRpc(error)) return saveStoreSettingsWithoutRpc(supabase, payload, actorId);
+  return { ok: false, error: mapDatabaseError(error, fallbackMessage) };
 }
 
 async function uploadStoreAsset(formData: FormData, field: string, directory: string) {
@@ -350,20 +363,54 @@ export async function updateStoreSettingsAction(formData: FormData): Promise<Act
     favicon_path: favicon.path ?? (value(formData, "existing_favicon_path") || null),
   };
   const supabase = await createClient();
-  const { data, error } = await supabase.rpc("save_store_settings", { p_payload: payload });
-  if (error) {
-    if (isMissingStoreSettingsRpc(error)) {
-      const fallback = await saveStoreSettingsWithoutRpc(supabase, payload, session.profile.id);
-      if (fallback.ok) {
-        revalidateOperations();
-        return fallback;
-      }
-      await Promise.all([cleanupAsset(logo.path), cleanupAsset(favicon.path)]);
-      return fallback;
-    }
+  const result = await persistStoreSettings(supabase, payload, session.profile.id, "Profil toko belum dapat disimpan.");
+  if (!result.ok) {
     await Promise.all([cleanupAsset(logo.path), cleanupAsset(favicon.path)]);
-    return { ok: false, error: mapDatabaseError(error, "Profil toko belum dapat disimpan.") };
+    return result;
   }
   revalidateOperations();
-  return { ok: true, data: { id: String(data) } };
+  return result;
+}
+
+export async function updateOperationalSettingsAction(formData: FormData): Promise<ActionResult<{ id: string }>> {
+  const session = await getAdminSession();
+  if (!session) return { ok: false, error: { code: "UNAUTHORIZED", message: "Sesi admin berakhir." } };
+  const parsed = operationalSettingsSchema.safeParse({ low_stock_threshold: value(formData, "low_stock_threshold") });
+  if (!parsed.success) {
+    return { ok: false, error: { code: "VALIDATION_ERROR", message: "Periksa kembali pengaturan toko.", fieldErrors: fieldErrors(parsed.error) } };
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("store_settings")
+    .select(STORE_SETTINGS_SELECT)
+    .eq("id", STORE_SETTINGS_ID)
+    .maybeSingle();
+  if (error) return { ok: false, error: mapDatabaseError(error, "Pengaturan toko belum dapat dimuat.") };
+  if (!data) return { ok: false, error: { code: "NOT_FOUND", message: "Profil toko belum tersedia. Lengkapi Profil Toko terlebih dahulu." } };
+
+  const current = data as StoreSettingsRow;
+  const payload: StoreSettingsPayload = {
+    store_name: current.store_name,
+    tagline: current.tagline,
+    description: current.description,
+    logo_path: current.logo_path,
+    favicon_path: current.favicon_path,
+    contact_email: current.contact_email,
+    contact_phone: current.contact_phone,
+    whatsapp_number: current.whatsapp_number,
+    address: current.address,
+    business_hours: current.business_hours,
+    facebook_url: current.facebook_url,
+    instagram_url: current.instagram_url,
+    currency: "IDR",
+    timezone: "Asia/Jakarta",
+    flat_shipping_fee: Number(current.flat_shipping_fee),
+    low_stock_threshold: parsed.data.low_stock_threshold,
+    seo_title: current.seo_title,
+    seo_description: current.seo_description,
+  };
+  const result = await persistStoreSettings(supabase, payload, session.profile.id, "Pengaturan toko belum dapat disimpan.");
+  if (result.ok) revalidateOperations();
+  return result;
 }

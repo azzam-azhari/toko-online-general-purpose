@@ -4,6 +4,7 @@ import {
   bannerSchema,
   externalOrderSchema,
   externalPaymentUpdateSchema,
+  operationalSettingsSchema,
   orderStatusUpdateSchema,
   publicOrderLookupSchema,
   storeSettingsSchema,
@@ -29,6 +30,11 @@ describe("validasi operasional", () => {
     const parsed = storeSettingsSchema.safeParse({ store_name: "NusaMart", contact_email: "", contact_phone: "", whatsapp_number: "081234567890", address: "", business_hours: "", facebook_url: "", instagram_url: "", currency: "IDR", timezone: "Asia/Jakarta", flat_shipping_fee: 0, low_stock_threshold: 5, seo_title: "", seo_description: "", tagline: "", description: "" });
     expect(parsed.success).toBe(true);
     expect(storeSettingsSchema.safeParse({ ...(parsed.success ? parsed.data : {}), currency: "USD" }).success).toBe(false);
+  });
+
+  it("membatasi threshold stok rendah pada pengaturan operasional", () => {
+    expect(operationalSettingsSchema.safeParse({ low_stock_threshold: "8" }).success).toBe(true);
+    expect(operationalSettingsSchema.safeParse({ low_stock_threshold: -1 }).success).toBe(false);
   });
 
   it("menerima pesanan eksternal yang idempoten dan menolak Midtrans", () => {

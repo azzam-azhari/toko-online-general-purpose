@@ -21,33 +21,33 @@ export default async function DashboardLayout({ children }: Readonly<{ children:
     <div className="min-h-screen bg-secondary/60">
       <CatalogRealtimeRefresh scope="admin" />
       <SmartStickyHeader>
-        <div className="mx-auto flex min-h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6">
-          <div className="flex items-center gap-3">
+        <div className="mx-auto flex min-h-16 max-w-7xl items-center justify-between gap-2 px-3 sm:gap-4 sm:px-6">
+          <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
             <DashboardNav storeName={settings.store_name} variant="mobile" />
-            <Link className="flex items-center gap-3" href="/dashboard">
-              <span className="relative size-9 overflow-hidden rounded-lg bg-white">
+            <Link className="flex min-w-0 items-center gap-2 sm:gap-3" href="/dashboard">
+              <span className="relative size-9 shrink-0 overflow-hidden rounded-lg bg-white">
                 <Image alt={`Logo ${settings.store_name}`} className="object-contain" fill priority sizes="36px" src={logoUrl} />
               </span>
-              <div>
-                <strong className="block leading-none">{settings.store_name}</strong>
+              <div className="min-w-0">
+                <strong className="block truncate text-sm leading-none sm:text-base">{settings.store_name}</strong>
                 <span className="text-xs text-muted-foreground">Dashboard</span>
               </div>
             </Link>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex shrink-0 items-center gap-2 sm:gap-3">
             <Badge className="hidden gap-1 sm:inline-flex" variant="secondary">
               <ShieldCheck aria-hidden="true" className="size-3.5" /> Admin aktif
             </Badge>
             <form action={logoutAction}>
-              <Button size="sm" type="submit" variant="outline">
-                <LogOut aria-hidden="true" /> Keluar
+              <Button aria-label="Keluar" className="size-9 px-0 sm:w-auto sm:px-3" size="sm" type="submit" variant="outline">
+                <LogOut aria-hidden="true" /> <span className="hidden sm:inline">Keluar</span>
               </Button>
             </form>
           </div>
         </div>
       </SmartStickyHeader>
-      <div className="mx-auto grid max-w-7xl gap-6 px-4 py-6 sm:px-6 sm:py-8 lg:grid-cols-[220px_minmax(0,1fr)]">
-        <div className="hidden lg:block">
+      <div className="mx-auto grid max-w-7xl items-start gap-6 px-4 py-6 sm:px-6 sm:py-8 md:landscape:grid-cols-[220px_minmax(0,1fr)] lg:grid-cols-[220px_minmax(0,1fr)]">
+        <div className="hidden max-h-[calc(100dvh-6rem)] self-start overflow-y-auto overscroll-contain md:landscape:sticky md:landscape:top-20 md:landscape:block lg:sticky lg:top-20 lg:block">
           <DashboardNav storeName={settings.store_name} variant="desktop" />
           <div className="mt-4 border-t px-3 pt-4">
             <p className="truncate text-sm font-semibold">{profile.full_name ?? "Admin NusaMart"}</p>
