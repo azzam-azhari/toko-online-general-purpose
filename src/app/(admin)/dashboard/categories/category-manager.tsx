@@ -58,7 +58,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { createSlug } from "@/lib/slug";
-import type { Category } from "@/types/catalog";
+import type { Category, CategoryWithProductCount } from "@/types/catalog";
 import {
   categoryFormSchema,
   type CategoryFormInput,
@@ -249,12 +249,12 @@ function DeleteCategoryButton({ category }: { category: Category }) {
   );
 }
 
-export function CategoryManager({ categories }: { categories: Category[] }) {
+export function CategoryManager({ categories }: { categories: CategoryWithProductCount[] }) {
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+  const [editingCategory, setEditingCategory] = useState<CategoryWithProductCount | null>(null);
   const parentNames = new Map(categories.map((category) => [category.id, category.name]));
   const openCreate = () => { setEditingCategory(null); setDialogOpen(true); };
-  const openEdit = (category: Category) => { setEditingCategory(category); setDialogOpen(true); };
+  const openEdit = (category: CategoryWithProductCount) => { setEditingCategory(category); setDialogOpen(true); };
 
   return (
     <>
@@ -262,7 +262,7 @@ export function CategoryManager({ categories }: { categories: Category[] }) {
       {categories.length === 0 ? <EmptyState action={<Button onClick={openCreate} type="button"><Plus aria-hidden="true" /> Tambah Kategori</Button>} description="Buat kategori pertama untuk mengelompokkan produk." icon={FolderTree} title="Belum ada kategori" /> : (
         <div className="grid gap-3">
           {categories.map((category) => (
-            <Card key={category.id}><CardContent className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between"><div className="flex min-w-0 items-start gap-3"><span className="grid size-10 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary"><CategoryIcon className="size-5" value={category.icon} /></span><div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><h2 className="font-semibold">{category.name}</h2><Badge variant={category.is_active ? "secondary" : "outline"}>{category.is_active ? "Aktif" : "Nonaktif"}</Badge></div><p className="mt-1 text-xs text-muted-foreground">/{category.slug} · Urutan {category.sort_order}{category.parent_id ? ` · Induk: ${parentNames.get(category.parent_id) ?? "—"}` : ""}</p>{category.description ? <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">{category.description}</p> : null}</div></div><div className="flex justify-end gap-1"><Button aria-label={`Edit ${category.name}`} onClick={() => openEdit(category)} size="icon" type="button" variant="ghost"><Pencil aria-hidden="true" /></Button><DeleteCategoryButton category={category} /></div></CardContent></Card>
+            <Card key={category.id}><CardContent className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between"><div className="flex min-w-0 items-start gap-3"><span className="grid size-10 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary"><CategoryIcon className="size-5" value={category.icon} /></span><div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><h2 className="flex flex-wrap items-baseline gap-x-1.5"><span className="font-semibold">{category.name}</span><span className="text-xs font-light text-muted-foreground">{category.product_count} produk</span></h2><Badge variant={category.is_active ? "secondary" : "outline"}>{category.is_active ? "Aktif" : "Nonaktif"}</Badge></div><p className="mt-1 text-xs text-muted-foreground">/{category.slug} · Urutan {category.sort_order}{category.parent_id ? ` · Induk: ${parentNames.get(category.parent_id) ?? "—"}` : ""}</p>{category.description ? <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">{category.description}</p> : null}</div></div><div className="flex justify-end gap-1"><Button aria-label={`Edit ${category.name}`} onClick={() => openEdit(category)} size="icon" type="button" variant="ghost"><Pencil aria-hidden="true" /></Button><DeleteCategoryButton category={category} /></div></CardContent></Card>
           ))}
         </div>
       )}

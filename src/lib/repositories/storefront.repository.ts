@@ -9,6 +9,7 @@ import type {
   CatalogResult,
   StorefrontBanner,
   StorefrontCategory,
+  StorefrontCategoryWithProductCount,
   StorefrontFaq,
   StorefrontProduct,
   StorefrontProductImage,
@@ -62,7 +63,31 @@ type RepositoryQueryError = {
   message?: string;
   details?: string;
   hint?: string;
+  status?: number;
 };
+
+function getRepositoryErrorDetails(error: unknown) {
+  if (error instanceof Error) {
+    return {
+      name: error.name,
+      message: error.message,
+      cause: error.cause instanceof Error ? error.cause.message : undefined,
+    };
+  }
+
+  const queryError = error as RepositoryQueryError | null;
+  return {
+    code: queryError?.code,
+    message: queryError?.message,
+    details: queryError?.details,
+    hint: queryError?.hint,
+    status: queryError?.status,
+  };
+}
+
+function reportRepositoryError(operation: string, error: unknown, fallback?: string) {
+  console.error(`[storefront.repository] ${operation} gagal${fallback ? `; ${fallback}` : ""}`, getRepositoryErrorDetails(error));
+}
 
 function isMissingAvailableStockColumn(error: RepositoryQueryError | null) {
   if (!error) return false;
@@ -71,10 +96,15 @@ function isMissingAvailableStockColumn(error: RepositoryQueryError | null) {
 }
 
 export class StorefrontRepositoryError extends Error {
-  constructor(message = "Storefront belum dapat dimuat.") {
-    super(message);
+  constructor(message = "Storefront belum dapat dimuat.", cause?: unknown) {
+    super(message, cause === undefined ? undefined : { cause });
     this.name = "StorefrontRepositoryError";
   }
+}
+
+function repositoryError(operation: string, message: string, cause: unknown) {
+  reportRepositoryError(operation, cause);
+  return new StorefrontRepositoryError(message, cause);
 }
 
 function sanitizeSearch(value = "") {
@@ -109,7 +139,7 @@ function mapProduct(row: ProductRow, supabaseUrl: string): StorefrontProduct {
   };
 }
 
-export const getStorefrontSettings = cache(async (): Promise<StorefrontSettings> => {
+export async function loadStorefrontSettings(): Promise<StorefrontSettings> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("store_settings")
@@ -119,8 +149,11 @@ export const getStorefrontSettings = cache(async (): Promise<StorefrontSettings>
     .limit(1)
     .maybeSingle();
 
-  if (error) throw new StorefrontRepositoryError("Profil toko belum dapat dimuat.");
   const assetBaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
+  if (error) {
+    reportRepositoryError("loadStorefrontSettings", error, "menggunakan profil toko bawaan");
+    return { ...DEFAULT_STORE_SETTINGS, asset_base_url: assetBaseUrl };
+  }
   if (!data) return { ...DEFAULT_STORE_SETTINGS, asset_base_url: assetBaseUrl };
 
   return {
@@ -129,21 +162,47 @@ export const getStorefrontSettings = cache(async (): Promise<StorefrontSettings>
     business_hours: (data.business_hours as Record<string, unknown> | null) ?? null,
     asset_base_url: assetBaseUrl,
   } as StorefrontSettings;
-});
+}
 
-export const getStorefrontCategories = cache(async (): Promise<StorefrontCategory[]> => {
+export const getStorefrontSettings = cache(loadStorefrontSettings);
+
+export async function loadStorefrontCategories(): Promise<StorefrontCategoryWithProductCount[]> {
   const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("categories")
-    .select("id, name, slug, description, image_path, icon, sort_order")
-    .eq("is_active", true)
-    .is("deleted_at", null)
-    .order("sort_order")
-    .order("name");
+  const [categoriesResult, productLinksResult] = await Promise.all([
+    supabase
+      .from("categories")
+      .select("id, name, slug, description, image_path, icon, sort_order")
+      .eq("is_active", true)
+      .is("deleted_at", null)
+      .order("sort_order")
+      .order("name"),
+    supabase
+      .from("product_categories")
+      .select("category_id, products!inner(id)")
+      .eq("products.status", "active")
+      .is("products.deleted_at", null),
+  ]);
 
-  if (error) throw new StorefrontRepositoryError("Kategori belum dapat dimuat.");
-  return (data ?? []) as StorefrontCategory[];
-});
+  if (categoriesResult.error) {
+    reportRepositoryError("loadStorefrontCategories.categories", categoriesResult.error, "menggunakan daftar kategori kosong");
+    return [];
+  }
+  if (productLinksResult.error) {
+    reportRepositoryError("loadStorefrontCategories.productCounts", productLinksResult.error, "menggunakan jumlah produk 0");
+  }
+
+  const counts = new Map<string, number>();
+  for (const row of productLinksResult.error ? [] : productLinksResult.data ?? []) {
+    counts.set(row.category_id, (counts.get(row.category_id) ?? 0) + 1);
+  }
+
+  return ((categoriesResult.data ?? []) as StorefrontCategory[]).map((category) => ({
+    ...category,
+    product_count: counts.get(category.id) ?? 0,
+  }));
+}
+
+export const getStorefrontCategories = cache(loadStorefrontCategories);
 
 export async function getStorefrontProducts(filters: CatalogFilters = {}): Promise<CatalogResult> {
   const supabase = await createClient();
@@ -155,18 +214,23 @@ export async function getStorefrontProducts(filters: CatalogFilters = {}): Promi
   let productIds: string[] | undefined;
 
   if (filters.category) {
-    const { data: category } = await supabase
+    const { data: category, error: categoryError } = await supabase
       .from("categories")
       .select("id")
       .eq("slug", filters.category)
       .eq("is_active", true)
       .maybeSingle();
+    if (categoryError) {
+      throw repositoryError("getStorefrontProducts.category", "Filter kategori belum dapat diterapkan.", categoryError);
+    }
     if (!category) return { products: [], total: 0, page, pageSize, totalPages: 1 };
     const { data: relations, error: relationError } = await supabase
       .from("product_categories")
       .select("product_id")
       .eq("category_id", category.id);
-    if (relationError) throw new StorefrontRepositoryError("Filter kategori belum dapat diterapkan.");
+    if (relationError) {
+      throw repositoryError("getStorefrontProducts.productCategories", "Filter kategori belum dapat diterapkan.", relationError);
+    }
     productIds = (relations ?? []).map((item) => item.product_id);
     if (!productIds.length) return { products: [], total: 0, page, pageSize, totalPages: 1 };
   }
@@ -218,7 +282,9 @@ export async function getStorefrontProducts(filters: CatalogFilters = {}): Promi
       while (expectedCount === null || legacyRows.length < expectedCount) {
         const batch = await createProductsQuery(LEGACY_PRODUCT_SELECT, false)
           .range(offset, offset + batchSize - 1);
-        if (batch.error) throw new StorefrontRepositoryError("Daftar produk belum dapat dimuat.");
+        if (batch.error) {
+          throw repositoryError("getStorefrontProducts.legacyBatch", "Daftar produk belum dapat dimuat.", batch.error);
+        }
 
         const rows = (batch.data ?? []) as unknown as ProductRow[];
         legacyRows.push(...rows);
@@ -244,7 +310,9 @@ export async function getStorefrontProducts(filters: CatalogFilters = {}): Promi
   }
 
   const { data, error, count } = response;
-  if (error) throw new StorefrontRepositoryError("Daftar produk belum dapat dimuat.");
+  if (error) {
+    throw repositoryError("getStorefrontProducts", "Daftar produk belum dapat dimuat.", error);
+  }
 
   const products = ((data ?? []) as unknown as ProductRow[]).map((row) => mapProduct(row, supabaseUrl));
 
@@ -291,7 +359,9 @@ export const getStorefrontProductBySlug = cache(async (slug: string): Promise<St
   }
 
   const { data, error } = response;
-  if (error) throw new StorefrontRepositoryError("Detail produk belum dapat dimuat.");
+  if (error) {
+    throw repositoryError("getStorefrontProductBySlug", "Detail produk belum dapat dimuat.", error);
+  }
   return data
     ? mapProduct(data as unknown as ProductRow, process.env.NEXT_PUBLIC_SUPABASE_URL ?? "")
     : null;
@@ -312,7 +382,9 @@ export const getStorefrontBanners = cache(async (): Promise<StorefrontBanner[]> 
     .is("deleted_at", null)
     .order("sort_order")
     .limit(3);
-  if (error) throw new StorefrontRepositoryError("Banner belum dapat dimuat.");
+  if (error) {
+    throw repositoryError("getStorefrontBanners", "Banner belum dapat dimuat.", error);
+  }
   return (data ?? []) as StorefrontBanner[];
 });
 
@@ -326,7 +398,9 @@ export const getStorefrontTestimonials = cache(async (): Promise<StorefrontTesti
     .is("deleted_at", null)
     .order("sort_order")
     .limit(6);
-  if (error) throw new StorefrontRepositoryError("Testimoni belum dapat dimuat.");
+  if (error) {
+    throw repositoryError("getStorefrontTestimonials", "Testimoni belum dapat dimuat.", error);
+  }
   return (data ?? []).map((item) => ({ ...item, rating: item.rating === null ? null : Number(item.rating) }));
 });
 
@@ -338,7 +412,9 @@ export const getStorefrontFaqs = cache(async (): Promise<StorefrontFaq[]> => {
     .eq("is_active", true)
     .is("deleted_at", null)
     .order("sort_order");
-  if (error) throw new StorefrontRepositoryError("FAQ belum dapat dimuat.");
+  if (error) {
+    throw repositoryError("getStorefrontFaqs", "FAQ belum dapat dimuat.", error);
+  }
   return (data ?? []) as StorefrontFaq[];
 });
 
@@ -349,6 +425,8 @@ export async function getActiveProductSlugs() {
     .select("slug, updated_at")
     .eq("status", "active")
     .is("deleted_at", null);
-  if (error) throw new StorefrontRepositoryError("Sitemap produk belum dapat dimuat.");
+  if (error) {
+    throw repositoryError("getActiveProductSlugs", "Sitemap produk belum dapat dimuat.", error);
+  }
   return data ?? [];
 }

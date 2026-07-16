@@ -163,7 +163,10 @@ export default async function HomePage() {
               <LandingReveal className="h-full" delay={(index % 4) * 0.045} key={category.id}>
                 <Link className="group block h-full rounded-2xl border bg-card p-5 transition hover:-translate-y-1 hover:border-primary/25 hover:shadow-lg" href={`/products?category=${category.slug}`}>
                   <span className="grid size-11 place-items-center rounded-xl bg-secondary text-lg font-bold text-primary">{String(index + 1).padStart(2, "0")}</span>
-                  <h3 className="mt-6 font-bold">{category.name}</h3>
+                  <h3 className="mt-6 flex flex-wrap items-baseline gap-x-1.5 font-bold">
+                    <span>{category.name}</span>
+                    <span className="text-xs font-light text-muted-foreground">{category.product_count} produk</span>
+                  </h3>
                   <p className="mt-2 line-clamp-2 text-xs leading-5 text-muted-foreground">{category.description ?? "Jelajahi produk dalam kategori ini."}</p>
                 </Link>
               </LandingReveal>

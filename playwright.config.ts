@@ -1,6 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 
 const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? "http://127.0.0.1:3100";
+const readinessURL = new URL("/api/health/ready", baseURL).toString();
 
 export default defineConfig({
   testDir: "./tests/e2e",
@@ -19,7 +20,7 @@ export default defineConfig({
     ? undefined
     : {
         command: "npm run start -- --hostname 127.0.0.1 --port 3100",
-        url: baseURL,
+        url: readinessURL,
         reuseExistingServer: !process.env.CI,
         timeout: 120_000,
       },

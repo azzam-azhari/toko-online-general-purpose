@@ -28,6 +28,10 @@ export type Category = {
   updated_at: string;
 };
 
+export type CategoryWithProductCount = Category & {
+  product_count: number;
+};
+
 export type Product = {
   id: string;
   name: string;

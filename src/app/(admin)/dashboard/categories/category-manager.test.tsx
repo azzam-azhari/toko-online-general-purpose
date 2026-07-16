@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
-import type { Category } from "@/types/catalog";
+import type { CategoryWithProductCount } from "@/types/catalog";
 
 import { CategoryManager } from "./category-manager";
 
@@ -23,7 +23,7 @@ vi.mock("sonner", () => ({
   toast: { error: vi.fn(), success: vi.fn(), warning: vi.fn() },
 }));
 
-const category: Category = {
+const category: CategoryWithProductCount = {
   id: "category-id",
   parent_id: null,
   name: "Kategori Uji",
@@ -35,12 +35,15 @@ const category: Category = {
   sort_order: 0,
   created_at: "2026-07-15T00:00:00.000Z",
   updated_at: "2026-07-15T00:00:00.000Z",
+  product_count: 3,
 };
 
 describe("CategoryManager", () => {
   it("menjelaskan dampak penghapusan permanen kategori sebelum eksekusi", async () => {
     mocks.deleteCategoryAction.mockResolvedValue({ ok: true, data: { id: category.id } });
     render(<CategoryManager categories={[category]} />);
+
+    expect(screen.getByText("3 produk")).toHaveClass("font-light");
 
     fireEvent.click(screen.getByRole("button", { name: "Hapus permanen Kategori Uji" }));
 

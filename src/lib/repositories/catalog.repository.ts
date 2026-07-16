@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import type {
   ActivityLog,
   Category,
+  CategoryWithProductCount,
   DashboardOverview,
   Product,
   ProductImage,
@@ -57,17 +58,34 @@ function mapProduct(row: ProductRow, supabaseUrl: string): Product {
   };
 }
 
-export async function getCategories(): Promise<Category[]> {
+export async function getCategories(): Promise<CategoryWithProductCount[]> {
   const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("categories")
-    .select("id, parent_id, name, slug, description, icon, image_path, is_active, sort_order, created_at, updated_at")
-    .is("deleted_at", null)
-    .order("sort_order")
-    .order("name");
+  const [categoriesResult, productLinksResult] = await Promise.all([
+    supabase
+      .from("categories")
+      .select("id, parent_id, name, slug, description, icon, image_path, is_active, sort_order, created_at, updated_at")
+      .is("deleted_at", null)
+      .order("sort_order")
+      .order("name"),
+    supabase
+      .from("product_categories")
+      .select("category_id, products!inner(id)")
+      .is("products.deleted_at", null),
+  ]);
 
-  if (error) throw new CatalogRepositoryError("Kategori belum dapat dimuat.");
-  return (data ?? []) as Category[];
+  if (categoriesResult.error || productLinksResult.error) {
+    throw new CatalogRepositoryError("Kategori belum dapat dimuat.");
+  }
+
+  const counts = new Map<string, number>();
+  for (const row of productLinksResult.data ?? []) {
+    counts.set(row.category_id, (counts.get(row.category_id) ?? 0) + 1);
+  }
+
+  return ((categoriesResult.data ?? []) as Category[]).map((category) => ({
+    ...category,
+    product_count: counts.get(category.id) ?? 0,
+  }));
 }
 
 export async function getProducts(options?: {

@@ -28,6 +28,15 @@ test("pengunjung dapat membuka beranda dan katalog", async ({ page }) => {
   }
 });
 
+test("landing page menampilkan jumlah produk pada setiap kategori", async ({ page }) => {
+  await page.goto("/");
+
+  const categoryCount = page.locator("#kategori").getByText(/^\d+ produk$/).first();
+  await categoryCount.scrollIntoViewIfNeeded();
+  await expect(categoryCount).toBeVisible();
+  await expect(categoryCount).toHaveClass(/font-light/);
+});
+
 test("animasi landing page menunggu elemen masuk viewport", async ({ page }) => {
   await page.goto("/");
   await page.waitForLoadState("networkidle");

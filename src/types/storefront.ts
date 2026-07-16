@@ -31,6 +31,10 @@ export type StorefrontCategory = {
   sort_order: number;
 };
 
+export type StorefrontCategoryWithProductCount = StorefrontCategory & {
+  product_count: number;
+};
+
 export type StorefrontProductImage = {
   id: string;
   url: string;
