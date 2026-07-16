@@ -62,7 +62,7 @@ jobs:
       - name: Verify production migration baseline
         run: |
           npx supabase migration list --db-url "$SUPABASE_DB_URL" --output json > migration-list.json
-          node -e "const fs=require('fs');const rows=JSON.parse(fs.readFileSync('migration-list.json','utf8')).migrations;const required=Array.from({length:16},(_,i)=>'202607150100'+String(i+1).padStart(2,'0'));const remote=new Set(rows.map((row)=>String(row.remote||'')));const missing=required.filter((version)=>!remote.has(version));if(missing.length){console.error('Production migration history must be reconciled first:',missing.join(','));process.exit(1)}"
+          node -e "const fs=require('fs');const rows=JSON.parse(fs.readFileSync('migration-list.json','utf8')).migrations;const required=fs.readdirSync('supabase/migrations').filter((name)=>name.endsWith('.sql')).map((name)=>name.slice(0,14));const remote=new Set(rows.map((row)=>String(row.remote||'')));const missing=required.filter((version)=>!remote.has(version));if(missing.length){console.error('Production migration history must be reconciled first:',missing.join(','));process.exit(1)}"
 
       - name: Back up production before migration
         run: |

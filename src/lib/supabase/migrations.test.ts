@@ -14,9 +14,9 @@ describe("Supabase migrations", () => {
   it("menyimpan migration dengan urutan timestamp yang konsisten", () => {
     const migrations = readdirSync(migrationsDirectory).filter((entry) => entry.endsWith(".sql")).sort();
 
-    expect(migrations).toHaveLength(18);
+    expect(migrations).toHaveLength(19);
     expect(migrations[0]).toContain("extensions");
-    expect(migrations.at(-1)).toContain("available_stock");
+    expect(migrations.at(-1)).toContain("service_role_privileges");
     expect(new Set(migrations.map((entry) => entry.slice(0, 14))).size).toBe(migrations.length);
   });
 
@@ -25,6 +25,17 @@ describe("Supabase migrations", () => {
 
     expect(availableStock).toContain("generated always as (stock - reserved_stock) stored");
     expect(availableStock).toContain("products_available_stock_idx");
+  });
+
+  it("memberi service role hanya akses baca yang dibutuhkan endpoint server", () => {
+    const privileges = readMigration("service_role_privileges.sql");
+
+    expect(privileges).toContain("grant usage on schema public to service_role");
+    for (const table of ["store_settings", "categories", "products", "orders", "order_items"]) {
+      expect(privileges).toContain(`public.${table}`);
+    }
+    expect(privileges).toContain("grant select on");
+    expect(privileges).not.toMatch(/grant\s+(insert|update|delete|all)/);
   });
 
   it("menambahkan kontrol operasional transaksional dan menunda Midtrans", () => {

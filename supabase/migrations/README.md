@@ -19,6 +19,7 @@ Migration dijalankan berdasarkan 14 digit timestamp pada nama file. Urutan domai
 15. hardening quality/security,
 16. penghapusan katalog permanen,
 17. order dan ledger pembayaran eksternal, status publik, serta kesiapan production,
-18. stok tersedia terhitung untuk filter dan pagination katalog.
+18. stok tersedia terhitung untuk filter dan pagination katalog,
+19. privilege baca minimum `service_role` untuk readiness dan status pesanan public.
 
 Perubahan schema, index, trigger, grant, atau policy baru harus dibuat sebagai migration baru; jangan mengubah migration yang sudah pernah diterapkan ke staging/production. Data development tetap berada di `supabase/seed.sql` agar tidak menjadi bagian dari deployment production.
