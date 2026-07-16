@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { formatRupiah } from "@/lib/money";
 import { getCategories, getProducts } from "@/lib/repositories/catalog.repository";
 import type { ProductStatus } from "@/types/catalog";
+import { databaseUuidSchema } from "@/validations/database.schema";
 
 import { ProductRowActions } from "./product-row-actions";
 
@@ -23,13 +24,20 @@ const validStatuses = new Set(["all", "draft", "active", "inactive"]);
 export default async function ProductsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; status?: string; page?: string }>;
+  searchParams: Promise<{ q?: string; status?: string; category?: string; page?: string }>;
 }) {
   const params = await searchParams;
   const status = validStatuses.has(params.status ?? "all") ? (params.status ?? "all") : "all";
+  const parsedCategoryId = databaseUuidSchema.safeParse(params.category);
+  const categoryId = parsedCategoryId.success ? parsedCategoryId.data : "all";
   const page = Math.max(Number(params.page) || 1, 1);
   const [{ products, total, pageSize }, categories] = await Promise.all([
-    getProducts({ search: params.q, status: status as ProductStatus | "all", page }),
+    getProducts({
+      search: params.q,
+      status: status as ProductStatus | "all",
+      categoryId: categoryId === "all" ? undefined : categoryId,
+      page,
+    }),
     getCategories(),
   ]);
   const categoryNames = new Map(categories.map((category) => [category.id, category.name]));
@@ -37,6 +45,8 @@ export default async function ProductsPage({
   const query = new URLSearchParams();
   if (params.q) query.set("q", params.q);
   if (status !== "all") query.set("status", status);
+  if (categoryId !== "all") query.set("category", categoryId);
+  const hasFilters = Boolean(params.q || status !== "all" || categoryId !== "all");
 
   return (
     <div className="space-y-6">
@@ -49,13 +59,24 @@ export default async function ProductsPage({
 
       <Card>
         <CardContent className="p-4">
-          <form className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_200px_auto]" method="get">
+          <form className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_220px_180px_auto]" method="get">
             <div className="relative">
               <Search aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
               <Input className="pl-10" defaultValue={params.q} name="q" placeholder="Cari nama, Kode Produk, atau slug..." />
             </div>
+            <Select defaultValue={categoryId} name="category">
+              <SelectTrigger aria-label="Filter kategori" className="h-11 w-full"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Semua kategori</SelectItem>
+                {categories.map((category) => (
+                  <SelectItem key={category.id} value={category.id}>
+                    {category.name}{category.is_active ? "" : " (nonaktif)"}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             <Select defaultValue={status} name="status">
-              <SelectTrigger className="h-11 w-full"><SelectValue /></SelectTrigger>
+              <SelectTrigger aria-label="Filter status" className="h-11 w-full"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Semua status</SelectItem>
                 <SelectItem value="active">Terbit</SelectItem>
@@ -71,9 +92,9 @@ export default async function ProductsPage({
       {products.length === 0 ? (
         <EmptyState
           action={<Button asChild><Link href="/dashboard/products/new"><Plus aria-hidden="true" /> Tambah Produk</Link></Button>}
-          description={params.q || status !== "all" ? "Coba ubah kata kunci atau filter status." : "Tambahkan produk pertama agar katalog siap diterbitkan."}
+          description={hasFilters ? "Coba ubah kata kunci, kategori, atau filter status." : "Tambahkan produk pertama agar katalog siap diterbitkan."}
           icon={Package}
-          title={params.q || status !== "all" ? "Produk tidak ditemukan" : "Belum ada produk"}
+          title={hasFilters ? "Produk tidak ditemukan" : "Belum ada produk"}
         />
       ) : (
         <>

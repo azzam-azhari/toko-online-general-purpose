@@ -9,6 +9,10 @@ import type {
   ProductImage,
   ProductStatus,
 } from "@/types/catalog";
+import { databaseUuidSchema } from "@/validations/database.schema";
+
+const PRODUCT_LIST_SELECT =
+  "id, name, slug, sku, short_description, description, price, compare_at_price, stock, reserved_stock, status, is_featured, sort_order, seo_title, seo_description, cta_type, cta_label, custom_url, whatsapp_number, whatsapp_template, open_in_new_tab, created_at, updated_at, product_images(id, storage_path, alt_text, sort_order, is_primary), product_categories(category_id)";
 
 type ProductRow = Omit<Product, "product_images" | "category_ids"> & {
   product_images: Omit<ProductImage, "url" | "public_url">[] | null;
@@ -69,6 +73,7 @@ export async function getCategories(): Promise<Category[]> {
 export async function getProducts(options?: {
   search?: string;
   status?: ProductStatus | "all";
+  categoryId?: string;
   page?: number;
   pageSize?: number;
 }) {
@@ -77,11 +82,15 @@ export async function getProducts(options?: {
   const pageSize = Math.min(Math.max(options?.pageSize ?? 20, 1), 50);
   const from = (page - 1) * pageSize;
   const to = from + pageSize - 1;
+  const parsedCategoryId = databaseUuidSchema.safeParse(options?.categoryId);
+  const categoryId = parsedCategoryId.success ? parsedCategoryId.data : undefined;
 
   let query = supabase
     .from("products")
     .select(
-      "id, name, slug, sku, short_description, description, price, compare_at_price, stock, reserved_stock, status, is_featured, sort_order, seo_title, seo_description, cta_type, cta_label, custom_url, whatsapp_number, whatsapp_template, open_in_new_tab, created_at, updated_at, product_images(id, storage_path, alt_text, sort_order, is_primary), product_categories(category_id)",
+      categoryId
+        ? `${PRODUCT_LIST_SELECT}, category_filter:product_categories!inner(category_id)`
+        : PRODUCT_LIST_SELECT,
       { count: "exact" },
     )
     .is("deleted_at", null);
@@ -89,6 +98,7 @@ export async function getProducts(options?: {
   const search = sanitizeSearch(options?.search ?? "");
   if (search) query = query.or(`name.ilike.%${search}%,sku.ilike.%${search}%,slug.ilike.%${search}%`);
   if (options?.status && options.status !== "all") query = query.eq("status", options.status);
+  if (categoryId) query = query.eq("category_filter.category_id", categoryId);
 
   const { data, error, count } = await query.order("updated_at", { ascending: false }).range(from, to);
 
@@ -96,7 +106,7 @@ export async function getProducts(options?: {
 
   const baseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
   return {
-    products: ((data ?? []) as ProductRow[]).map((row) => mapProduct(row, baseUrl)),
+    products: ((data ?? []) as unknown as ProductRow[]).map((row) => mapProduct(row, baseUrl)),
     total: count ?? 0,
     page,
     pageSize,
