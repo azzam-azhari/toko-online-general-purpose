@@ -18,7 +18,33 @@ test("pengunjung dapat membuka beranda dan katalog", async ({ page }) => {
   await page.getByRole("link", { name: "Katalog", exact: true }).first().click();
   await expect(page).toHaveURL(/\/products$/);
   await expect(page.getByRole("heading", { level: 1, name: /Temukan produk/i })).toBeVisible();
-  await expect(page.getByLabel("Cari", { exact: true })).toBeVisible();
+
+  const mobileFilterToggle = page.locator("#main-content summary").filter({ hasText: "Filter Produk" });
+  if (await mobileFilterToggle.isVisible()) {
+    await mobileFilterToggle.click();
+    await expect(page.locator("#mobile-catalog-search")).toBeVisible();
+  } else {
+    await expect(page.locator("#desktop-catalog-search")).toBeVisible();
+  }
+});
+
+test("animasi landing page menunggu elemen masuk viewport", async ({ page }) => {
+  await page.goto("/");
+  await page.waitForLoadState("networkidle");
+
+  const reveals = page.locator("[data-landing-reveal]");
+  expect(await reveals.count()).toBeGreaterThan(5);
+
+  const hero = reveals.first();
+  const finalCta = reveals.last();
+  await expect(hero).toBeInViewport();
+  await expect(hero).toHaveCSS("opacity", "1");
+  await expect(finalCta).not.toBeInViewport();
+  await expect(finalCta).toHaveCSS("opacity", "0");
+
+  await finalCta.scrollIntoViewIfNeeded();
+  await expect(finalCta).toBeInViewport();
+  await expect(finalCta).toHaveCSS("opacity", "1");
 });
 
 test("navbar responsif menjaga pencarian dan hamburger tetap terpisah", async ({ page }) => {
