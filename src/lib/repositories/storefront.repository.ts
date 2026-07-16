@@ -27,6 +27,7 @@ type ProductRow = {
   compare_at_price: number | string | null;
   stock: number;
   reserved_stock: number;
+  available_stock?: number;
   is_featured: boolean;
   seo_title: string | null;
   seo_description: string | null;
@@ -50,8 +51,24 @@ type ProductRow = {
   }> | null;
 };
 
-const PRODUCT_SELECT =
+const LEGACY_PRODUCT_SELECT =
   "id, name, slug, sku, short_description, description, price, compare_at_price, stock, reserved_stock, is_featured, seo_title, seo_description, cta_type, cta_label, custom_url, whatsapp_number, whatsapp_template, open_in_new_tab, created_at, product_images(id, storage_path, alt_text, is_primary, sort_order), product_categories(category_id, categories(id, name, slug, description, image_path, icon, sort_order))";
+
+const PRODUCT_SELECT =
+  "id, name, slug, sku, short_description, description, price, compare_at_price, stock, reserved_stock, available_stock, is_featured, seo_title, seo_description, cta_type, cta_label, custom_url, whatsapp_number, whatsapp_template, open_in_new_tab, created_at, product_images(id, storage_path, alt_text, is_primary, sort_order), product_categories(category_id, categories(id, name, slug, description, image_path, icon, sort_order))";
+
+type RepositoryQueryError = {
+  code?: string;
+  message?: string;
+  details?: string;
+  hint?: string;
+};
+
+function isMissingAvailableStockColumn(error: RepositoryQueryError | null) {
+  if (!error) return false;
+  const description = [error.message, error.details, error.hint].filter(Boolean).join(" ").toLowerCase();
+  return description.includes("available_stock") && ["42703", "PGRST204"].includes(error.code ?? "");
+}
 
 export class StorefrontRepositoryError extends Error {
   constructor(message = "Storefront belum dapat dimuat.") {
@@ -84,7 +101,9 @@ function mapProduct(row: ProductRow, supabaseUrl: string): StorefrontProduct {
     ...row,
     price: Number(row.price),
     compare_at_price: row.compare_at_price === null ? null : Number(row.compare_at_price),
-    available_stock: Math.max(0, row.stock - row.reserved_stock),
+    available_stock: row.available_stock === undefined
+      ? Math.max(0, Number(row.stock) - Number(row.reserved_stock))
+      : Number(row.available_stock),
     images,
     categories,
   };
@@ -132,23 +151,8 @@ export async function getStorefrontProducts(filters: CatalogFilters = {}): Promi
   const pageSize = Math.min(24, Math.max(1, filters.pageSize ?? 12));
   const from = (page - 1) * pageSize;
   const to = from + pageSize - 1;
-
-  let query = supabase
-    .from("products")
-    .select(PRODUCT_SELECT, { count: "exact" })
-    .eq("status", "active")
-    .neq("cta_type", "midtrans")
-    .is("deleted_at", null);
-
   const search = sanitizeSearch(filters.search);
-  if (search) {
-    query = query.or(
-      `name.ilike.%${search}%,sku.ilike.%${search}%,short_description.ilike.%${search}%`,
-    );
-  }
-  if (filters.minPrice !== undefined) query = query.gte("price", filters.minPrice);
-  if (filters.maxPrice !== undefined) query = query.lte("price", filters.maxPrice);
-  if (filters.availability === "available") query = query.gt("stock", 0);
+  let productIds: string[] | undefined;
 
   if (filters.category) {
     const { data: category } = await supabase
@@ -163,36 +167,86 @@ export async function getStorefrontProducts(filters: CatalogFilters = {}): Promi
       .select("product_id")
       .eq("category_id", category.id);
     if (relationError) throw new StorefrontRepositoryError("Filter kategori belum dapat diterapkan.");
-    const productIds = (relations ?? []).map((item) => item.product_id);
+    productIds = (relations ?? []).map((item) => item.product_id);
     if (!productIds.length) return { products: [], total: 0, page, pageSize, totalPages: 1 };
-    query = query.in("id", productIds);
   }
 
-  switch (filters.sort) {
-    case "price-asc":
-      query = query.order("price", { ascending: true });
-      break;
-    case "price-desc":
-      query = query.order("price", { ascending: false });
-      break;
-    case "name":
-      query = query.order("name", { ascending: true });
-      break;
-    case "popular":
-      query = query.order("is_featured", { ascending: false }).order("sort_order");
-      break;
-    default:
-      query = query.order("created_at", { ascending: false });
-  }
+  function createProductsQuery(select: string, useAvailableStockColumn: boolean) {
+    let query = supabase
+      .from("products")
+      .select(select, { count: "exact" })
+      .eq("status", "active")
+      .neq("cta_type", "midtrans")
+      .is("deleted_at", null);
 
-  const { data, error, count } = await query.range(from, to);
-  if (error) throw new StorefrontRepositoryError("Daftar produk belum dapat dimuat.");
+    if (search) {
+      query = query.or(
+        `name.ilike.%${search}%,sku.ilike.%${search}%,short_description.ilike.%${search}%`,
+      );
+    }
+    if (filters.minPrice !== undefined) query = query.gte("price", filters.minPrice);
+    if (filters.maxPrice !== undefined) query = query.lte("price", filters.maxPrice);
+    if (filters.availability === "available") {
+      query = useAvailableStockColumn ? query.gt("available_stock", 0) : query.gt("stock", 0);
+    }
+    if (productIds) query = query.in("id", productIds);
+
+    switch (filters.sort) {
+      case "price-asc":
+        return query.order("price", { ascending: true });
+      case "price-desc":
+        return query.order("price", { ascending: false });
+      case "name":
+        return query.order("name", { ascending: true });
+      case "popular":
+        return query.order("is_featured", { ascending: false }).order("sort_order");
+      default:
+        return query.order("created_at", { ascending: false });
+    }
+  }
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
-  let products = ((data ?? []) as unknown as ProductRow[]).map((row) => mapProduct(row, supabaseUrl));
-  if (filters.availability === "available") {
-    products = products.filter((product) => product.available_stock > 0);
+  let response = await createProductsQuery(PRODUCT_SELECT, true).range(from, to);
+
+  if (isMissingAvailableStockColumn(response.error)) {
+    if (filters.availability === "available") {
+      const legacyRows: ProductRow[] = [];
+      const batchSize = 1000;
+      let offset = 0;
+      let expectedCount: number | null = null;
+
+      while (expectedCount === null || legacyRows.length < expectedCount) {
+        const batch = await createProductsQuery(LEGACY_PRODUCT_SELECT, false)
+          .range(offset, offset + batchSize - 1);
+        if (batch.error) throw new StorefrontRepositoryError("Daftar produk belum dapat dimuat.");
+
+        const rows = (batch.data ?? []) as unknown as ProductRow[];
+        legacyRows.push(...rows);
+        expectedCount = batch.count;
+        if (!rows.length || (expectedCount === null && rows.length < batchSize)) break;
+        offset += rows.length;
+      }
+
+      const availableProducts = legacyRows
+        .map((row) => mapProduct(row, supabaseUrl))
+        .filter((product) => product.available_stock > 0);
+      const total = availableProducts.length;
+      return {
+        products: availableProducts.slice(from, to + 1),
+        total,
+        page,
+        pageSize,
+        totalPages: Math.max(1, Math.ceil(total / pageSize)),
+      };
+    }
+
+    response = await createProductsQuery(LEGACY_PRODUCT_SELECT, false).range(from, to);
   }
+
+  const { data, error, count } = response;
+  if (error) throw new StorefrontRepositoryError("Daftar produk belum dapat dimuat.");
+
+  const products = ((data ?? []) as unknown as ProductRow[]).map((row) => mapProduct(row, supabaseUrl));
 
   const total = count ?? 0;
   return {
@@ -216,7 +270,7 @@ export async function getNewestProducts(limit = 8) {
 
 export const getStorefrontProductBySlug = cache(async (slug: string): Promise<StorefrontProduct | null> => {
   const supabase = await createClient();
-  const { data, error } = await supabase
+  let response = await supabase
     .from("products")
     .select(PRODUCT_SELECT)
     .eq("slug", slug)
@@ -225,6 +279,18 @@ export const getStorefrontProductBySlug = cache(async (slug: string): Promise<St
     .is("deleted_at", null)
     .maybeSingle();
 
+  if (isMissingAvailableStockColumn(response.error)) {
+    response = await supabase
+      .from("products")
+      .select(LEGACY_PRODUCT_SELECT)
+      .eq("slug", slug)
+      .eq("status", "active")
+      .neq("cta_type", "midtrans")
+      .is("deleted_at", null)
+      .maybeSingle();
+  }
+
+  const { data, error } = response;
   if (error) throw new StorefrontRepositoryError("Detail produk belum dapat dimuat.");
   return data
     ? mapProduct(data as unknown as ProductRow, process.env.NEXT_PUBLIC_SUPABASE_URL ?? "")

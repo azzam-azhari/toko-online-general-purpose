@@ -76,7 +76,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
                       <div>
                         <strong className="text-sm">{item.product_name}</strong>
                         <p className="mt-1 text-xs text-muted-foreground">
-                          {item.product_sku ?? "Tanpa SKU"} · {item.quantity} × {formatRupiah(item.unit_price)}
+                          {item.product_sku ?? "Tanpa Kode Produk"} · {item.quantity} × {formatRupiah(item.unit_price)}
                         </p>
                       </div>
                       <strong className="text-sm">{formatRupiah(item.line_total)}</strong>

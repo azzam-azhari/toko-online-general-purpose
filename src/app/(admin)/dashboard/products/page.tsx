@@ -9,7 +9,7 @@ import { ProductStatusBadge } from "@/components/common/status-badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Select } from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { formatRupiah } from "@/lib/money";
 import { getCategories, getProducts } from "@/lib/repositories/catalog.repository";
 import type { ProductStatus } from "@/types/catalog";
@@ -52,13 +52,16 @@ export default async function ProductsPage({
           <form className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_200px_auto]" method="get">
             <div className="relative">
               <Search aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-              <Input className="pl-10" defaultValue={params.q} name="q" placeholder="Cari nama, SKU, atau slug..." />
+              <Input className="pl-10" defaultValue={params.q} name="q" placeholder="Cari nama, Kode Produk, atau slug..." />
             </div>
             <Select defaultValue={status} name="status">
-              <option value="all">Semua status</option>
-              <option value="active">Terbit</option>
-              <option value="draft">Draft</option>
-              <option value="inactive">Nonaktif</option>
+              <SelectTrigger className="h-11 w-full"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Semua status</SelectItem>
+                <SelectItem value="active">Terbit</SelectItem>
+                <SelectItem value="draft">Draft</SelectItem>
+                <SelectItem value="inactive">Nonaktif</SelectItem>
+              </SelectContent>
             </Select>
             <Button type="submit" variant="secondary">Terapkan</Button>
           </form>

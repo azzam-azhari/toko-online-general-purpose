@@ -1,6 +1,6 @@
 "use client";
 
-import { Menu, Search } from "lucide-react";
+import { LogIn, Menu, Search } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -57,9 +57,15 @@ export function StorefrontHeader({ storeName, logoUrl }: { storeName: string; lo
           </label>
           <div className="relative w-full">
             <Search aria-hidden="true" className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-            <Input className="rounded-full pl-9" id="header-search" name="q" placeholder="Cari produk..." type="search" />
+            <Input className="rounded-full pl-9" id="header-search" name="q" placeholder="Cari Nama / Kode Produk..." type="search" />
           </div>
         </form>
+
+        <Button aria-label="Login" asChild className="hidden xl:inline-flex" size="icon" variant="outline">
+          <Link href="/login">
+            <LogIn aria-hidden="true" />
+          </Link>
+        </Button>
 
         <div className="ml-auto flex shrink-0 items-center gap-2 xl:hidden">
           <Dialog>
@@ -87,6 +93,12 @@ export function StorefrontHeader({ storeName, logoUrl }: { storeName: string; lo
               </form>
             </DialogContent>
           </Dialog>
+
+          <Button aria-label="Login" asChild size="icon" variant="outline">
+            <Link href="/login">
+              <LogIn aria-hidden="true" />
+            </Link>
+          </Button>
 
           <Dialog>
             <DialogTrigger asChild>

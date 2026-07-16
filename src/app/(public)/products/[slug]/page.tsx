@@ -3,7 +3,6 @@ import { CheckCircle2, ChevronRight, PackageCheck, ShieldCheck } from "lucide-re
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { serverEnv } from "@/configs/env/server";
@@ -14,7 +13,6 @@ import {
 } from "@/lib/repositories/storefront.repository";
 import { buildWhatsAppUrl, formatRupiah, getDiscountPercentage, serializeJsonLd } from "@/lib/storefront";
 
-import { AddToCartButton } from "../../_components/add-to-cart-button";
 import { ProductCard } from "../../_components/product-card";
 import { ProductGallery } from "../../_components/product-gallery";
 import { PurchaseButton } from "../../_components/purchase-button";
@@ -46,7 +44,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 export default async function ProductDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const [product, settings] = await Promise.all([getStorefrontProductBySlug(slug), getStorefrontSettings()]);
-  if (!product) notFound();
+  if (!product || product.cta_type === "midtrans") notFound();
 
   const relatedProducts = await getRelatedProducts(product, 4);
   const productUrl = new URL(`/products/${product.slug}`, serverEnv.appUrl).toString();
@@ -56,15 +54,19 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
       ? buildWhatsAppUrl({ product, settings, productUrl, fallbackNumber: process.env.NEXT_PUBLIC_DEFAULT_WHATSAPP_NUMBER })
       : null;
   const discount = getDiscountPercentage(product.price, product.compare_at_price);
-  const cartProduct = {
+  const purchaseProduct = {
     id: product.id,
     slug: product.slug,
     name: product.name,
     price: product.price,
     imageUrl: product.images[0]?.url ?? null,
     availableStock: product.available_stock,
-    ctaType: "midtrans" as const,
+    ctaType: product.cta_type,
   };
+  const purchaseLabel = product.cta_type === "whatsapp" ? "Beli via WhatsApp" : "Beli di Situs Mitra";
+  const purchaseHint = product.cta_type === "whatsapp"
+    ? "Pembelian akan dilanjutkan melalui percakapan WhatsApp."
+    : "Pembelian akan dilanjutkan di situs mitra resmi.";
 
   const productJsonLd = {
     "@context": "https://schema.org",
@@ -114,7 +116,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
               {discount ? <Badge className="bg-accent text-white">Hemat {discount}%</Badge> : null}
             </div>
             <h1 className="mt-5 font-serif text-4xl leading-tight sm:text-5xl">{product.name}</h1>
-            <p className="mt-3 text-sm text-muted-foreground">SKU: {product.sku}</p>
+            <p className="mt-3 text-sm text-muted-foreground">Kode Produk: {product.sku}</p>
             {product.short_description ? <p className="mt-5 text-base leading-8 text-muted-foreground">{product.short_description}</p> : null}
 
             <div className="mt-7 flex flex-wrap items-baseline gap-3">
@@ -126,20 +128,16 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
               {product.available_stock > 0 ? <><CheckCircle2 aria-hidden="true" className="size-4 text-primary" /><span>{product.available_stock} stok tersedia</span></> : <><span className="size-2 rounded-full bg-destructive" /><span>Stok habis</span></>}
             </div>
 
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+            <p className="mt-8 text-sm text-muted-foreground">{purchaseHint}</p>
+            <div className="mt-3 flex flex-col gap-3 sm:flex-row">
               <PurchaseButton
                 className="w-full sm:w-auto sm:min-w-44"
                 href={ctaHref}
-                label={product.cta_label || "Beli Sekarang"}
+                label={purchaseLabel}
                 openInNewTab={product.open_in_new_tab}
-                product={{ ...cartProduct, ctaType: product.cta_type }}
+                product={purchaseProduct}
               />
-              {product.cta_type === "midtrans" ? <AddToCartButton product={cartProduct} /> : null}
             </div>
-
-            {product.cta_type === "midtrans" ? (
-              <Alert className="mt-5 border-primary/15 bg-primary/5"><AlertDescription>Produk ini dapat disimpan di keranjang. Harga dan stok akan diperiksa kembali saat checkout tersedia pada fase berikutnya.</AlertDescription></Alert>
-            ) : null}
 
             <div className="mt-8 border-t pt-7"><ShareButtons instagramUrl={settings.instagram_url} productName={product.name} url={productUrl} /></div>
 
@@ -160,7 +158,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
         {relatedProducts.length ? (
           <section className="mt-20 border-t pt-12">
             <div className="flex items-end justify-between gap-4"><div><p className="text-sm font-bold uppercase tracking-[.16em] text-accent">Lanjut menjelajah</p><h2 className="mt-2 font-serif text-3xl sm:text-4xl">Produk Terkait</h2></div><Link className="text-sm font-bold text-primary" href="/products">Lihat semua</Link></div>
-            <div className="mt-8 grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-4">{relatedProducts.map((item) => <ProductCard appUrl={serverEnv.appUrl} key={item.id} product={item} settings={settings} />)}</div>
+            <div className="mt-8 grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-4">{relatedProducts.map((item) => <ProductCard key={item.id} product={item} />)}</div>
           </section>
         ) : null}
       </div>

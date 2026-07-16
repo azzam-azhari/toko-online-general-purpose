@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, Loader2, Save, Send } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import { type FieldPath, useForm, useWatch } from "react-hook-form";
+import { Controller, type FieldPath, useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 
 import { saveProductAction } from "@/actions/products.actions";
@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select } from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { createSlug } from "@/lib/slug";
 import { createShortDescription } from "@/lib/text";
@@ -37,8 +37,10 @@ type ProductFormProps = {
   product?: Product;
 };
 
+type SubmitIntent = "draft" | "publish";
+
 const DEFAULT_WHATSAPP_TEMPLATE =
-  "Pagi, Kak. Saya tertarik dengan {product_name} ini. Harganya {product_price}. Berikut detail produknya: {product_url}. SKU: {product_sku}.";
+  "Pagi, Kak. Saya tertarik dengan {product_name} ini. Harganya {product_price}. Berikut detail produknya: {product_url}. Kode Produk: {product_sku}.";
 
 function FieldError({ message }: { message?: string }) {
   return message ? <p className="mt-1.5 text-sm text-destructive">{message}</p> : null;
@@ -81,7 +83,7 @@ function Section({
 
 export function ProductForm({ categories, product }: ProductFormProps) {
   const router = useRouter();
-  const [pending, setPending] = useState(false);
+  const [pendingIntent, setPendingIntent] = useState<SubmitIntent | null>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [files, setFiles] = useState<File[]>([]);
   const [deletedImageIds, setDeletedImageIds] = useState<string[]>([]);
@@ -147,51 +149,53 @@ export function ProductForm({ categories, product }: ProductFormProps) {
     if (previewUrl) URL.revokeObjectURL(previewUrl);
   }, [previewUrl]);
 
-  async function submit(values: ProductFormValues, intent: "draft" | "publish") {
-    setPending(true);
-    const formData = new FormData();
-    const status = intent === "publish" ? "active" : "draft";
-    const payload = { ...values, status };
+  const pending = pendingIntent !== null;
 
-    for (const [key, value] of Object.entries(payload)) {
-      if (key === "category_ids") continue;
-      if (typeof value === "boolean") formData.set(key, String(value));
-      else formData.set(key, value === undefined || value === null ? "" : String(value));
-    }
-    values.category_ids.forEach((id) => formData.append("category_ids", id));
-    files.forEach((file) => formData.append("images", file));
-    deletedImageIds.forEach((id) => formData.append("delete_image_ids", id));
+  async function submit(values: ProductFormValues, intent: SubmitIntent) {
+    setPendingIntent(intent);
+    form.clearErrors();
 
-    let result: Awaited<ReturnType<typeof saveProductAction>>;
     try {
-      result = await saveProductAction(product?.id ?? null, formData);
-    } catch {
-      setPending(false);
-      toast.error("Produk belum dapat disimpan. Periksa koneksi lalu coba kembali.");
-      return;
-    }
+      const formData = new FormData();
+      const status = intent === "publish" ? "active" : "draft";
+      const payload = { ...values, status };
 
-    if (!result.ok) {
-      setPending(false);
-      if (result.error.fieldErrors) {
-        for (const [key, messages] of Object.entries(result.error.fieldErrors)) {
-          if (key === "images") form.setError("root.images", { message: messages[0] });
-          else form.setError(key as FieldPath<ProductFormInput>, { message: messages[0] });
-        }
+      for (const [key, value] of Object.entries(payload)) {
+        if (key === "category_ids") continue;
+        if (typeof value === "boolean") formData.set(key, String(value));
+        else formData.set(key, value === undefined || value === null ? "" : String(value));
       }
-      toast.error(result.error.message);
-      return;
-    }
+      values.category_ids.forEach((id) => formData.append("category_ids", id));
+      files.forEach((file) => formData.append("images", file));
+      deletedImageIds.forEach((id) => formData.append("delete_image_ids", id));
 
-    toast.success(status === "active" ? "Produk berhasil diterbitkan." : "Produk berhasil disimpan sebagai draft.");
-    if (result.data.warning) toast.warning(result.data.warning);
-    setFiles([]);
-    setDeletedImageIds([]);
-    router.replace(product ? `/dashboard/products/${result.data.id}/edit` : "/dashboard/products");
-    router.refresh();
+      const result = await saveProductAction(product?.id ?? null, formData);
+
+      if (!result.ok) {
+        if (result.error.fieldErrors) {
+          for (const [key, messages] of Object.entries(result.error.fieldErrors)) {
+            if (key === "images") form.setError("root.images", { message: messages[0] });
+            else form.setError(key as FieldPath<ProductFormInput>, { message: messages[0] });
+          }
+        }
+        toast.error(result.error.message);
+        return;
+      }
+
+      toast.success(status === "active" ? "Produk berhasil diterbitkan." : "Produk berhasil disimpan sebagai draft.");
+      if (result.data.warning) toast.warning(result.data.warning);
+      setFiles([]);
+      setDeletedImageIds([]);
+
+      router.replace("/dashboard/products");
+    } catch {
+      toast.error("Produk belum dapat disimpan. Periksa koneksi lalu coba kembali.");
+    } finally {
+      setPendingIntent(null);
+    }
   }
 
-  const handleIntent = (intent: "draft" | "publish") => form.handleSubmit(
+  const handleIntent = (intent: SubmitIntent) => form.handleSubmit(
     (values) => submit(values, intent),
     (errors) => {
       const message = firstErrorMessage(errors);
@@ -222,7 +226,7 @@ export function ProductForm({ categories, product }: ProductFormProps) {
             <FieldError message={form.formState.errors.description?.message} />
           </div>
           <div>
-            <Label htmlFor="sku">SKU</Label>
+            <Label htmlFor="sku">Kode Produk</Label>
             <Input id="sku" placeholder="Contoh: TAS-KNV-001" {...form.register("sku")} />
             <FieldHelp>Kode unik untuk memudahkan pencarian dan pencatatan stok.</FieldHelp>
             <FieldError message={form.formState.errors.sku?.message} />
@@ -304,10 +308,12 @@ export function ProductForm({ categories, product }: ProductFormProps) {
           <div className="grid gap-5 sm:grid-cols-2">
             <div>
               <Label htmlFor="cta_type">Tujuan Tombol Beli</Label>
-              <Select id="cta_type" {...form.register("cta_type")}>
-                <option value="whatsapp">WhatsApp</option>
-                <option value="custom_url">Tautan eksternal</option>
-              </Select>
+              <Controller control={form.control} name="cta_type" render={({ field }) => (
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <SelectTrigger className="h-11 w-full" id="cta_type" onBlur={field.onBlur} ref={field.ref}><SelectValue /></SelectTrigger>
+                  <SelectContent><SelectItem value="whatsapp">WhatsApp</SelectItem><SelectItem value="custom_url">Tautan eksternal</SelectItem></SelectContent>
+                </Select>
+              )} />
               <FieldError message={form.formState.errors.cta_type?.message} />
             </div>
             <div>
@@ -389,13 +395,13 @@ export function ProductForm({ categories, product }: ProductFormProps) {
 
       <div className="sticky bottom-3 z-20 flex flex-col gap-2 rounded-xl border bg-background/95 p-3 shadow-lg backdrop-blur sm:flex-row sm:items-center sm:justify-end">
         <Button disabled={pending} onClick={() => handleIntent("draft")} type="button" variant="outline">
-          {pending ? <Loader2 aria-hidden="true" className="animate-spin" /> : <Save aria-hidden="true" />} Simpan Draft
+          {pendingIntent === "draft" ? <Loader2 aria-hidden="true" className="animate-spin" /> : <Save aria-hidden="true" />} Simpan Draft
         </Button>
         <Button disabled={pending} onClick={() => setPreviewOpen(true)} type="button" variant="secondary">
           <Eye aria-hidden="true" /> Lihat Pratinjau
         </Button>
         <Button disabled={pending} onClick={() => handleIntent("publish")} type="button">
-          {pending ? <Loader2 aria-hidden="true" className="animate-spin" /> : <Send aria-hidden="true" />} Terbitkan
+          {pendingIntent === "publish" ? <Loader2 aria-hidden="true" className="animate-spin" /> : <Send aria-hidden="true" />} Terbitkan
         </Button>
       </div>
 

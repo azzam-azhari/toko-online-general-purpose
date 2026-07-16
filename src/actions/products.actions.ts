@@ -220,8 +220,8 @@ function mapDatabaseError(error: { code?: string; message: string }): ActionErro
     if (error.message.includes("sku")) {
       return {
         code: "CONFLICT",
-        message: "SKU sudah digunakan produk lain.",
-        fieldErrors: { sku: ["Gunakan SKU yang berbeda."] },
+        message: "Kode Produk sudah digunakan produk lain.",
+        fieldErrors: { sku: ["Gunakan Kode Produk yang berbeda."] },
       };
     }
     return {

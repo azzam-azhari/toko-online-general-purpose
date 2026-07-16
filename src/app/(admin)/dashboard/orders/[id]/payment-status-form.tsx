@@ -9,7 +9,7 @@ import { updateExternalPaymentStatusAction } from "@/actions/operations.actions"
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select } from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import type { PaymentStatus } from "@/types/operations";
 
@@ -56,9 +56,9 @@ export function PaymentStatusForm({ id, status }: { id: string; status: PaymentS
     <form className="mt-4 grid gap-4 border-t pt-4" onSubmit={submit}>
       <div>
         <Label htmlFor="payment-status">Status baru</Label>
-        <Select id="payment-status" onChange={(event) => setNextStatus(event.target.value as PaymentStatus)} value={nextStatus}>
-          <option value="">Pilih status</option>
-          {allowed.map((option) => <option key={option} value={option}>{labels[option]}</option>)}
+        <Select onValueChange={(value) => setNextStatus(value as PaymentStatus)} value={nextStatus}>
+          <SelectTrigger className="h-11 w-full" id="payment-status"><SelectValue placeholder="Pilih status" /></SelectTrigger>
+          <SelectContent>{allowed.map((option) => <SelectItem key={option} value={option}>{labels[option]}</SelectItem>)}</SelectContent>
         </Select>
       </div>
       <div>

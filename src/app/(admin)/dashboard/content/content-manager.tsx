@@ -19,7 +19,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select } from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import type { Banner, Faq, Testimonial } from "@/types/operations";
 
@@ -70,7 +70,7 @@ function ContentFields({ kind, item, errors }: { kind: ContentKind; item: Conten
         <>
           <div className="grid gap-4 sm:grid-cols-2"><div><Label htmlFor="content-author">Nama pelanggan</Label><Input defaultValue={(item as Testimonial | null)?.author_name ?? ""} id="content-author" name="author_name" />{fieldError("author_name")}</div><div><Label htmlFor="content-role">Keterangan</Label><Input defaultValue={(item as Testimonial | null)?.author_title ?? ""} id="content-role" name="author_title" placeholder="Contoh: Pelanggan terverifikasi" /></div></div>
           <div><Label htmlFor="content-quote">Isi testimoni</Label><Textarea defaultValue={(item as Testimonial | null)?.quote ?? ""} id="content-quote" name="quote" />{fieldError("quote")}</div>
-          <div><Label htmlFor="content-rating">Rating</Label><Select defaultValue={String((item as Testimonial | null)?.rating ?? 5)} id="content-rating" name="rating">{[5,4,3,2,1].map((rating) => <option key={rating} value={rating}>{rating} bintang</option>)}</Select></div>
+          <div><Label htmlFor="content-rating">Rating</Label><Select defaultValue={String((item as Testimonial | null)?.rating ?? 5)} name="rating"><SelectTrigger className="h-11 w-full" id="content-rating"><SelectValue /></SelectTrigger><SelectContent>{[5,4,3,2,1].map((rating) => <SelectItem key={rating} value={String(rating)}>{rating} bintang</SelectItem>)}</SelectContent></Select></div>
           <AssetField existing={(item as Testimonial | null)?.image_path} label="Foto pelanggan (opsional)" />
           <label className="flex items-start gap-3 rounded-lg border p-3 text-sm"><input className="mt-1 size-4 accent-primary" defaultChecked={Boolean((item as Testimonial | null)?.consented_at)} name="has_consent" type="checkbox" /><span><strong className="block">Persetujuan sudah diperoleh</strong><span className="text-xs text-muted-foreground">Wajib sebelum testimoni dapat diterbitkan.</span></span></label>{fieldError("has_consent")}
         </>

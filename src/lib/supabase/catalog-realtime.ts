@@ -20,6 +20,7 @@ export async function broadcastCatalogChange(change: CatalogChange): Promise<boo
         },
         body: JSON.stringify(change),
         cache: "no-store",
+        signal: AbortSignal.timeout(5_000),
       },
     );
 

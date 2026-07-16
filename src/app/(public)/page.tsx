@@ -85,7 +85,7 @@ export default async function HomePage() {
             <form action="/products" className="mt-10 flex max-w-xl gap-2 rounded-2xl border bg-white p-2 shadow-lg shadow-primary/5" role="search">
               <label className="sr-only" htmlFor="hero-search">Cari produk</label>
               <Search aria-hidden="true" className="ml-3 mt-3 size-5 shrink-0 text-muted-foreground" />
-              <input className="min-w-0 flex-1 bg-transparent px-1 text-sm outline-none placeholder:text-muted-foreground" id="hero-search" name="q" placeholder="Apa yang sedang Anda cari?" />
+              <input className="min-w-0 flex-1 bg-transparent px-1 text-sm outline-none placeholder:text-muted-foreground" id="hero-search" name="q" placeholder="Cari Nama / Kode Produk..." />
               <Button type="submit">Cari</Button>
             </form>
           </div>
@@ -167,7 +167,7 @@ export default async function HomePage() {
       <section className="bg-secondary/70 py-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div><p className="text-sm font-bold uppercase tracking-[.16em] text-accent">Produk pilihan</p><h2 className="mt-2 font-serif text-4xl sm:text-5xl">Pilihan yang layak dilihat.</h2></div>
-          {highlighted.length ? <div className="mt-9 grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-3 lg:grid-cols-4">{highlighted.map((product) => <ProductCard appUrl={appUrl} key={product.id} product={product} settings={settings} />)}</div> : <p className="mt-8 rounded-2xl border border-dashed bg-background p-8 text-center text-sm text-muted-foreground">Produk pilihan akan tampil setelah produk aktif diterbitkan.</p>}
+          {highlighted.length ? <div className="mt-9 grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-3 lg:grid-cols-4">{highlighted.map((product) => <ProductCard key={product.id} product={product} />)}</div> : <p className="mt-8 rounded-2xl border border-dashed bg-background p-8 text-center text-sm text-muted-foreground">Produk pilihan akan tampil setelah produk aktif diterbitkan.</p>}
         </div>
       </section>
 

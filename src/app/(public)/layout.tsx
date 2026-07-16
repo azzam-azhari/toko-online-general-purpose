@@ -5,6 +5,7 @@ import { getStorefrontSettings } from "@/lib/repositories/storefront.repository"
 import { getPublicAssetUrl } from "@/lib/storefront";
 
 import { CartProvider } from "./_components/cart-provider";
+import { PublicPageMotion } from "./_components/public-motion";
 import { StorefrontFooter } from "./_components/storefront-footer";
 import { StorefrontHeader } from "./_components/storefront-header";
 
@@ -48,7 +49,7 @@ export default async function PublicLayout({ children }: Readonly<{ children: Re
         </a>
         <StorefrontHeader logoUrl={logoUrl} storeName={settings.store_name} />
         <div className="scroll-mt-24 outline-none" id="main-content" tabIndex={-1}>
-          {children}
+          <PublicPageMotion>{children}</PublicPageMotion>
         </div>
         <StorefrontFooter logoUrl={logoUrl} settings={settings} />
       </div>

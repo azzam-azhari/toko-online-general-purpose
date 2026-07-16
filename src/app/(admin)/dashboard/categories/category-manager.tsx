@@ -26,7 +26,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
-import { type FieldPath, useForm, useWatch } from "react-hook-form";
+import { Controller, type FieldPath, useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 
 import { deleteCategoryAction, saveCategoryAction } from "@/actions/categories.actions";
@@ -55,7 +55,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select } from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { createSlug } from "@/lib/slug";
 import type { Category } from "@/types/catalog";
@@ -166,7 +166,7 @@ function CategoryFormDialog({ categories, category, open, onOpenChange }: {
           ) : <input type="hidden" {...form.register("slug")} />}
           <div><Label htmlFor="category-description">Deskripsi</Label><Textarea className="min-h-24" id="category-description" {...form.register("description")} />{form.formState.errors.description ? <p className="mt-1 text-sm text-destructive">{form.formState.errors.description.message}</p> : null}</div>
           <div className="grid gap-4 sm:grid-cols-2">
-            <div><Label htmlFor="category-parent">Kategori induk</Label><Select id="category-parent" {...form.register("parent_id")}><option value="">Tanpa induk</option>{categories.filter((option) => option.id !== category?.id).map((option) => <option key={option.id} value={option.id}>{option.name}</option>)}</Select>{form.formState.errors.parent_id ? <p className="mt-1 text-sm text-destructive">{form.formState.errors.parent_id.message}</p> : null}</div>
+            <div><Label htmlFor="category-parent">Kategori induk</Label><Controller control={form.control} name="parent_id" render={({ field }) => <Select onValueChange={(value) => field.onChange(value === "__none__" ? "" : value)} value={typeof field.value === "string" && field.value ? field.value : "__none__"}><SelectTrigger className="h-11 w-full" id="category-parent" onBlur={field.onBlur} ref={field.ref}><SelectValue /></SelectTrigger><SelectContent><SelectItem value="__none__">Tanpa induk</SelectItem>{categories.filter((option) => option.id !== category?.id).map((option) => <SelectItem key={option.id} value={option.id}>{option.name}</SelectItem>)}</SelectContent></Select>} />{form.formState.errors.parent_id ? <p className="mt-1 text-sm text-destructive">{form.formState.errors.parent_id.message}</p> : null}</div>
             <div><Label htmlFor="category-order">Urutan tampil</Label><Input id="category-order" min="0" step="1" type="number" {...form.register("sort_order")} />{form.formState.errors.sort_order ? <p className="mt-1 text-sm text-destructive">{form.formState.errors.sort_order.message}</p> : null}</div>
           </div>
           <fieldset>

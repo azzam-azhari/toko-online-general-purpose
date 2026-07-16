@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 import type { CartProduct } from "./cart-provider";
 
 type PurchaseButtonProps = {
-  product: Omit<CartProduct, "ctaType"> & { ctaType: "midtrans" | "custom_url" | "whatsapp" };
+  product: Omit<CartProduct, "ctaType"> & { ctaType: "custom_url" | "whatsapp" };
   label: string;
   href?: string | null;
   openInNewTab?: boolean;
@@ -24,7 +24,7 @@ export function PurchaseButton({
   className,
   compact = false,
 }: PurchaseButtonProps) {
-  const isUnavailable = product.availableStock < 1 || product.ctaType === "midtrans" || !href;
+  const isUnavailable = product.availableStock < 1 || !href;
 
   function handlePurchase(event: React.MouseEvent<HTMLButtonElement>) {
     event.preventDefault();
@@ -50,7 +50,7 @@ export function PurchaseButton({
       type="button"
     >
       <ShoppingBag aria-hidden="true" />
-      {product.ctaType === "midtrans" ? "Belum Tersedia" : isUnavailable ? "Stok Habis" : label}
+      {isUnavailable ? "Stok Habis" : label}
     </Button>
   );
 }

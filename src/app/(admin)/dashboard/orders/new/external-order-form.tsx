@@ -9,7 +9,7 @@ import { createExternalOrderAction } from "@/actions/operations.actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select } from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { formatRupiah } from "@/lib/money";
 import type { ExternalOrderProduct, ExternalSalesChannel } from "@/types/operations";
@@ -62,15 +62,14 @@ export function ExternalOrderForm({ products }: { products: ExternalOrderProduct
         <div>
           <Label htmlFor="sales-channel">Kanal pesanan</Label>
           <Select
-            id="sales-channel"
-            onChange={(event) => {
-              setChannel(event.target.value as ExternalSalesChannel);
+            onValueChange={(value) => {
+              setChannel(value as ExternalSalesChannel);
               setItems([createItem()]);
             }}
             value={channel}
           >
-            <option value="whatsapp">WhatsApp</option>
-            <option value="custom_url">Tautan eksternal</option>
+            <SelectTrigger className="h-11 w-full" id="sales-channel"><SelectValue /></SelectTrigger>
+            <SelectContent><SelectItem value="whatsapp">WhatsApp</SelectItem><SelectItem value="custom_url">Tautan eksternal</SelectItem></SelectContent>
           </Select>
         </div>
         <div>
@@ -107,13 +106,15 @@ export function ExternalOrderForm({ products }: { products: ExternalOrderProduct
             <div className="grid gap-3 rounded-xl border p-4 sm:grid-cols-[minmax(0,1fr)_120px_auto] sm:items-end" key={item.key}>
               <div>
                 <Label htmlFor={`product-${item.key}`}>Produk</Label>
-                <Select id={`product-${item.key}`} onChange={(event) => setItem(index, { product_id: event.target.value })} required value={item.product_id}>
-                  <option value="">Pilih produk</option>
+                <Select onValueChange={(value) => setItem(index, { product_id: value })} required value={item.product_id}>
+                  <SelectTrigger className="h-11 w-full" id={`product-${item.key}`}><SelectValue placeholder="Pilih produk" /></SelectTrigger>
+                  <SelectContent>
                   {availableProducts.map((option) => (
-                    <option disabled={items.some((current, currentIndex) => currentIndex !== index && current.product_id === option.id)} key={option.id} value={option.id}>
+                    <SelectItem disabled={items.some((current, currentIndex) => currentIndex !== index && current.product_id === option.id)} key={option.id} value={option.id}>
                       {option.name} · {formatRupiah(option.price)} · stok {option.available_stock}
-                    </option>
+                    </SelectItem>
                   ))}
+                  </SelectContent>
                 </Select>
               </div>
               <div>

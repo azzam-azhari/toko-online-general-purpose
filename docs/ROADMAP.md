@@ -107,5 +107,5 @@ Implementasi dan prosedur: [`PHASE_8_PRODUCTION.md`](./PHASE_8_PRODUCTION.md).
 - Midtrans Snap.
 - Webhook pembayaran yang terverifikasi dan idempotent.
 - Keranjang user
-- [ ] Aktivasi Midtrans production setelah pengujian sandbox dan UAT selesai. Tetap dinonaktifkan karena UAT staging belum disetujui.
-- [ ] Penerapan migration ke production. Wajib melalui backup, UAT approval, dan GitHub Environment `production`.
+- Aktivasi Midtrans production setelah pengujian sandbox dan UAT selesai. Tetap dinonaktifkan karena UAT staging belum disetujui.
+- Penerapan migration ke production. Wajib melalui backup, UAT approval, dan GitHub Environment `production`.

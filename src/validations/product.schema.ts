@@ -26,7 +26,7 @@ export const productFormSchema = z
   .object({
     name: z.string().trim().min(2, "Nama produk minimal 2 karakter.").max(180),
     slug: z.string().trim().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Gunakan huruf kecil, angka, dan tanda hubung."),
-    sku: z.string().trim().min(1, "SKU wajib diisi.").max(80),
+    sku: z.string().trim().min(1, "Kode Produk wajib diisi.").max(80),
     short_description: optionalText(240),
     description: optionalText(5000),
     price: z.coerce.number().int("Harga harus berupa angka bulat.").min(0, "Harga tidak boleh negatif."),

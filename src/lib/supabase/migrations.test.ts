@@ -14,10 +14,17 @@ describe("Supabase migrations", () => {
   it("menyimpan migration dengan urutan timestamp yang konsisten", () => {
     const migrations = readdirSync(migrationsDirectory).filter((entry) => entry.endsWith(".sql")).sort();
 
-    expect(migrations).toHaveLength(17);
+    expect(migrations).toHaveLength(18);
     expect(migrations[0]).toContain("extensions");
-    expect(migrations.at(-1)).toContain("checkout_production");
+    expect(migrations.at(-1)).toContain("available_stock");
     expect(new Set(migrations.map((entry) => entry.slice(0, 14))).size).toBe(migrations.length);
+  });
+
+  it("menghitung stok tersedia di database untuk filter dan pagination yang akurat", () => {
+    const availableStock = readMigration("available_stock.sql");
+
+    expect(availableStock).toContain("generated always as (stock - reserved_stock) stored");
+    expect(availableStock).toContain("products_available_stock_idx");
   });
 
   it("menambahkan kontrol operasional transaksional dan menunda Midtrans", () => {
